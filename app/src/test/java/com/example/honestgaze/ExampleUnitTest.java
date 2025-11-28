@@ -1,4 +1,4 @@
-package com.example.honestgazeandroid;
+package com.example.honestgaze;
 
 import org.junit.Test;
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:background="#66000000"
+        android:padding="10dp">
+
+        <ImageButton
+            android:id="@+id/btnToggleMic"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_mic_on"
+            android:tint="#FFFFFF"/>
+
+        <ImageButton
+            android:id="@+id/btnToggleCam"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_cam_on"
+            android:tint="#FFFFFF"/>
+
+        <ImageButton
+            android:id="@+id/btnSaveReplay"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginStart="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_save"
+            android:tint="#FFFFFF"/>
+    </LinearLayout>
+</RelativeLayout>
