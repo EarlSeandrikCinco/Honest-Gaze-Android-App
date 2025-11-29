@@ -48,4 +48,5 @@ dependencies {
 
     // Optional: Kotlin coroutines for Firebase async operations
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    testImplementation(libs.junit.junit)
 }

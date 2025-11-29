@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "514514641706",
+    "project_id": "honest-gaze",
+    "storage_bucket": "honest-gaze.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:514514641706:android:0075780f8504a199e83453",
+        "android_client_info": {
+          "package_name": "com.example.honestgaze"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCM_ZJfz-6ZMZDBDKAqBNdCc4QLZPGcwaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
