@@ -2,35 +2,48 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.honestgaze">
 
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
-    <uses-feature android:name="android.hardware.camera.any" />
+
+    <!-- Hardware features -->
+    <uses-feature android:name="android.hardware.camera.any" android:required="true" />
+    <uses-feature android:name="android.hardware.microphone" android:required="true" />
 
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+
         <activity
             android:name=".SessionSummaryActivity"
             android:exported="false" />
         <activity
             android:name=".OngoingExamActivity"
             android:exported="false" />
-        <activity android:name=".ReplayViewerActivity" />
-        <activity android:name=".VideoCallActivity" />
+        <activity
+            android:name=".ReplayViewerActivity"
+            android:exported="false" />
+
+        <!-- Video call activity must be exported for Android 12+ -->
+        <activity
+            android:name=".VideoCallActivity"
+            android:exported="true" />
+
         <activity
             android:name=".MainMenuActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

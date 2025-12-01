@@ -41,6 +41,8 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
 
+    implementation("io.agora.rtc:full-sdk:4.6.1")
+
     // Firebase
     implementation("com.google.firebase:firebase-database-ktx:20.3.1")
     implementation("com.google.firebase:firebase-storage-ktx:20.2.0")
@@ -52,3 +54,5 @@ dependencies {
     implementation(libs.constraintlayout)
     testImplementation(libs.junit.junit)
 }
+
+apply(plugin = "com.google.gms.google-services")
