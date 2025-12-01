@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainMenuActivity extends AppCompatActivity {
 
-    Button btnStartCall, btnViewReplay;
+    Button btnStartCall, btnViewReplay, btnOngoingExam;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -16,6 +16,7 @@ public class MainMenuActivity extends AppCompatActivity {
 
         btnStartCall = findViewById(R.id.btnStartCall);
         btnViewReplay = findViewById(R.id.btnViewReplay);
+        btnOngoingExam = findViewById(R.id.btnOngoingExam);
 
         btnStartCall.setOnClickListener(v ->
                 startActivity(new Intent(this, VideoCallActivity.class))
@@ -25,6 +26,11 @@ public class MainMenuActivity extends AppCompatActivity {
             Intent i = new Intent(this, ReplayViewerActivity.class);
             // Paste your Firebase video URL here
             i.putExtra("videoUrl", "PASTE_FIREBASE_VIDEO_URL_HERE");
+            startActivity(i);
+        });
+
+        btnOngoingExam.setOnClickListener(v -> {
+            Intent i = new Intent(MainMenuActivity.this, OngoingExamActivity.class);
             startActivity(i);
         });
     }

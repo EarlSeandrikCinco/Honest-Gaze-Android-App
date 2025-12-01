@@ -10,6 +10,7 @@ constraintlayout = "2.1.4"
 firebaseBom = "34.6.0"
 coreKtx = "1.12.0"
 junitVersion = "4.12"
+activity = "1.8.0"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -24,6 +25,7 @@ firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics
 firebase-database = { group = "com.google.firebase", name = "firebase-database" }
 firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
 junit-junit = { group = "junit", name = "junit", version.ref = "junitVersion" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
