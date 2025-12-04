@@ -1,5 +1,7 @@
 package com.example.honestgaze;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.SurfaceView;
 import android.widget.FrameLayout;
@@ -27,12 +29,39 @@ public class VideoCallActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_call);
 
+        // Ask for runtime permissions FIRST
+        if (!hasPermissions()) {
+            requestPermissions(new String[]{
+                    Manifest.permission.CAMERA,
+                    Manifest.permission.RECORD_AUDIO
+            }, 1);
+            return; // Stop until permissions granted
+        }
+
+        // Load views
         localContainer = findViewById(R.id.local_video_view);
         remoteContainer = findViewById(R.id.remote_video_view);
 
         initAgoraEngine();
         setupLocalVideo();
         joinChannel();
+    }
+
+    // Check if permissions already granted
+    private boolean hasPermissions() {
+        return checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    // Called after user taps "Allow"
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 1 && grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            recreate(); // Restart activity now that permissions are granted
+        }
     }
 
     private void initAgoraEngine() {
@@ -56,7 +85,6 @@ public class VideoCallActivity extends AppCompatActivity {
     }
 
     private void setupLocalVideo() {
-        // NEW WAY IN v4: create SurfaceView manually
         SurfaceView localView = new SurfaceView(this);
         localContainer.addView(localView);
         rtcEngine.setupLocalVideo(new VideoCanvas(localView, VideoCanvas.RENDER_MODE_HIDDEN, 0));
@@ -67,6 +95,7 @@ public class VideoCallActivity extends AppCompatActivity {
         options.publishCameraTrack = true;
         options.autoSubscribeAudio = true;
         options.autoSubscribeVideo = true;
+
         rtcEngine.joinChannel(null, CHANNEL_NAME, 0, options);
     }
 
