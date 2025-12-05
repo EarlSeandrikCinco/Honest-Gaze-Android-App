@@ -35,6 +35,11 @@ public class OngoingExamActivity extends AppCompatActivity {
     private PreviewView cameraPreview;
     private TextView warningText;
 
+    private long lookAwayStartTime = 0;
+    private boolean isLookingAway = false;
+
+    private final long GRACE_PERIOD_MS = 1000; // 2 seconds
+
     private FaceDetector detector;
     private ExecutorService cameraExecutor;
 
@@ -152,26 +157,60 @@ public class OngoingExamActivity extends AppCompatActivity {
     private void handleDetections(List<Face> faces) {
 
         if (faces.size() == 0) {
+            resetGazeState();
             showWarning("No face detected");
             return;
         }
 
         if (faces.size() > 1) {
+            resetGazeState();
             showWarning("Multiple faces detected");
             return;
         }
 
         Face face = faces.get(0);
 
-        float headEulerY = face.getHeadEulerAngleY(); // left/right (negative = right, positive = left)
-        float headEulerX = face.getHeadEulerAngleX(); // up/down
+        float headEulerY = face.getHeadEulerAngleY();
+        float headEulerX = face.getHeadEulerAngleX();
 
-        boolean lookingAway = (Math.abs(headEulerY) > 20) || (Math.abs(headEulerX) > 20);
+        String direction = null;
 
-        if (lookingAway) {
-            showWarning("Looking away from the screen");
+        // LEFT/RIGHT
+        if (headEulerY < -20) direction = "right";
+        else if (headEulerY > 20) direction = "left";
+
+        // DOWN
+        if (headEulerX < -20) direction = "down";
+
+        if (direction == null) {
+            // User is looking normally → reset
+            resetGazeState();
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+
+        if (!isLookingAway) {
+            // First frame of looking away
+            isLookingAway = true;
+            lookAwayStartTime = now;
+            return;
+        }
+
+        // If already looking away, check if grace period passed
+        if (now - lookAwayStartTime >= GRACE_PERIOD_MS) {
+            showWarning("You looked " + direction + " for too long");
+            resetGazeState();
         }
     }
+
+    private void resetGazeState() {
+        isLookingAway = false;
+        lookAwayStartTime = 0;
+    }
+
+
+
 
     private void showWarning(String msg) {
 
