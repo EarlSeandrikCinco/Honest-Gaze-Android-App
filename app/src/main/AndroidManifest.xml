@@ -16,41 +16,42 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
+        <!-- Launcher / Welcome screen -->
         <activity
-            android:name=".ActivityQuizDetails"
-            android:exported="false" />
-        <activity
-            android:name=".SummaryScreen"
-            android:exported="false" />
-        <activity
-            android:name=".CreateQuiz"
-            android:exported="false" />
-        <activity
-            android:name=".ProctorMenu"
-            android:exported="false" />
-        <activity
-            android:name=".SessionSummaryActivity"
-            android:exported="false" />
-
-        <!-- This is where the gaze-tracking will run -->
-        <activity
-            android:name=".OngoingExamActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".ReplayViewerActivity"
-            android:exported="false" />
-
-        <!-- Main menu -->
-        <activity
-            android:name=".MainMenuActivity"
+            android:name=".WelcomeActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Login / Sign-up flow -->
+        <activity android:name=".SelectRoleActivity" android:exported="true" />
+        <activity android:name=".RegisterActivity" android:exported="true" />
+        <activity android:name=".LoginActivity" android:exported="true" />
+
+        <!-- Main menu -->
+        <activity android:name=".MainMenuActivity" android:exported="true" />
+
+        <!-- Existing activities -->
+        <activity android:name=".ActivityQuizDetails" android:exported="false" />
+        <activity android:name=".SummaryScreen" android:exported="false" />
+        <activity android:name=".CreateQuiz" android:exported="false" />
+        <activity android:name=".ProctorMenu" android:exported="false" />
+        <activity android:name=".SessionSummaryActivity" android:exported="false" />
+        <activity
+            android:name=".OngoingExamActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity android:name=".ReplayViewerActivity" android:exported="false" />
+
+        <!-- Other activities -->
+        <activity android:name=".ActivityVideoCall" android:exported="false" />
+        <activity android:name=".ActivitySummaryScreen" android:exported="false" />
+        <activity android:name=".ActivityRegister" android:exported="false" />
+        <activity android:name=".ActivitySelectRole" android:exported="false" />
+        <activity android:name=".ActivityWelcome" android:exported="false" />
 
     </application>
 
