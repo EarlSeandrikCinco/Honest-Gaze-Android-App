@@ -64,7 +64,7 @@
             android:padding="10dp"
             android:textSize="16sp"
             android:textColor="@android:color/black"
-            android:hintTextColor="@android:color/darker_gray"/>
+            android:textColorHint="@android:color/darker_gray"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- SCROLLABLE BUTTON LIST BELOW -->
