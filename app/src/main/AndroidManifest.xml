@@ -34,6 +34,21 @@
         <!-- Main menu -->
         <activity android:name=".MainMenuActivity" android:exported="true" />
 
+        <!-- NEW: Student Menu -->
+        <activity android:name=".StudentMenuActivity" android:exported="false" />
+
+        <!-- NEW: History Screen -->
+        <activity android:name=".HistoryActivity" android:exported="false" />
+
+        <!-- NEW: Quiz Details Screen -->
+        <activity android:name=".QuizDetailsActivity" android:exported="false" />
+
+        <!-- NEW: Quiz Taking with Proctoring -->
+        <activity
+            android:name=".QuizTakingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- Existing activities -->
         <activity android:name=".ActivityQuizDetails" android:exported="false" />
         <activity android:name=".SummaryScreen" android:exported="false" />
