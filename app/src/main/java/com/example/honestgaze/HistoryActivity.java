@@ -33,6 +33,15 @@ public class HistoryActivity extends AppCompatActivity {
 
         findViewById(R.id.btnQuiz7).setOnClickListener(v ->
                 openQuizDetails("Quiz 7"));
+
+        findViewById(R.id.btnQuiz8).setOnClickListener(v ->
+                openQuizDetails("Quiz 8"));
+
+        findViewById(R.id.btnQuiz9).setOnClickListener(v ->
+                openQuizDetails("Quiz 9"));
+
+        findViewById(R.id.btnQuiz10).setOnClickListener(v ->
+                openQuizDetails("Quiz 10"));
     }
 
     private void openQuizDetails(String quizName) {

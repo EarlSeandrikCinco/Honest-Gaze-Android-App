@@ -6,7 +6,7 @@ import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class WelcomeActivity extends AppCompatActivity {
+public class    WelcomeActivity extends AppCompatActivity {
 
     private Button btnSignUp, btnLogin;
 
