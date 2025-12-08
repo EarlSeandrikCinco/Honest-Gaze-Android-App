@@ -64,6 +64,9 @@ public class LoginActivity extends AppCompatActivity {
                                         startActivity(intent);
                                         finish();
                                     }
+                                    else {
+                                        Toast.makeText(LoginActivity.this, "Invalid account type", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
                             }
                         } else {
