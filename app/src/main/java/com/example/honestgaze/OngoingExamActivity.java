@@ -30,6 +30,9 @@ import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.google.mlkit.vision.face.FaceDetection;
 
+import android.media.AudioAttributes;
+import android.media.SoundPool;
+
 import java.util.concurrent.ExecutionException;
 
 public class OngoingExamActivity extends AppCompatActivity {
@@ -54,6 +57,16 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     // Exam warnings
     private int remainingWarnings = 3;
+    private boolean isLookingAway = false;
+
+    private long gazeAwayStartTime = 0;
+    private static final long WARNING_DELAY_MS = 2500; // 2.5 seconds grace period
+
+    // SoundPool for warning sound
+    private SoundPool soundPool;
+    private int calibrationDoneSoundId;
+    private int warningSoundId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +75,7 @@ public class OngoingExamActivity extends AppCompatActivity {
 
         bindViews();
         setupFaceDetector();
+        setupSoundPool();
 
         btnStartCalibration.setOnClickListener(v -> startCalibration());
         btnCancelCalibration.setOnClickListener(v -> {
@@ -69,11 +83,40 @@ public class OngoingExamActivity extends AppCompatActivity {
             Toast.makeText(this, "Calibration cancelled", Toast.LENGTH_SHORT).show();
         });
 
-        // Show calibration instructions immediately
         calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
 
         if (hasCameraPermission()) startCamera();
         else requestCameraPermission();
+    }
+
+    private void setupSoundPool() {
+        AudioAttributes attributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(1)
+                .setAudioAttributes(attributes)
+                .build();
+
+        // Load your warning sound from res/raw/warning.mp3
+        warningSoundId = soundPool.load(this, R.raw.warning, 1);
+        calibrationDoneSoundId = soundPool.load(this, R.raw.calibrationdone, 1);
+    }
+
+    private void playCalibrationDoneSound() {
+        soundPool.play(calibrationDoneSoundId, 1f, 1f, 1, 0, 1f);
+    }
+    private void playWarningSound() {
+        soundPool.play(warningSoundId, 1f, 1f, 1, 0, 1f);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (soundPool != null) {
+            soundPool.release();
+        }
+        super.onDestroy();
     }
 
     // ---------------------------------------------------
@@ -265,22 +308,37 @@ public class OngoingExamActivity extends AppCompatActivity {
 
         calibrationOverlay.setVisibility(LinearLayout.GONE);
         Toast.makeText(this, "Calibration complete!", Toast.LENGTH_SHORT).show();
+        playCalibrationDoneSound(); // play calibration sound
     }
+
 
     // ---------------------------------------------------
     // Gaze Detection + Warning System
     // ---------------------------------------------------
     private void detectGaze(float cx, float cy) {
         float dx = Math.abs(cx - calibratedCenterX);
+        float threshold = 25f; // adjust sensitivity
 
-        float threshold = 25f; // adjust if too sensitive
-
-        if (dx > threshold) issueWarning();
+        if (dx > threshold) {
+            if (gazeAwayStartTime == 0) {
+                gazeAwayStartTime = System.currentTimeMillis();
+            } else {
+                long elapsed = System.currentTimeMillis() - gazeAwayStartTime;
+                if (elapsed >= WARNING_DELAY_MS && !isLookingAway) {
+                    issueWarning();
+                    isLookingAway = true;
+                }
+            }
+        } else {
+            gazeAwayStartTime = 0;
+            isLookingAway = false;
+        }
     }
 
     private void issueWarning() {
         remainingWarnings--;
         warningCounterText.setText("Remaining warnings: " + remainingWarnings);
+        playWarningSound();
 
         if (remainingWarnings <= 0) {
             Toast.makeText(this, "Exam ended (too many warnings).", Toast.LENGTH_LONG).show();

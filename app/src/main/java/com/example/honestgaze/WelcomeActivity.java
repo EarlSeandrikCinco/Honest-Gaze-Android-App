@@ -10,6 +10,20 @@ public class    WelcomeActivity extends AppCompatActivity {
 
     private Button btnSignUp, btnLogin;
 
+
+    // TODO Comment out if not testing detection feature
+    private static final boolean DEBUG_SKIP_LOGIN = true;
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (DEBUG_SKIP_LOGIN) {
+            startActivity(new Intent(this, OngoingExamActivity.class));
+            finish();
+        }
+    }
+    // ------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
