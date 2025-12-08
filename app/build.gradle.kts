@@ -49,7 +49,7 @@ dependencies {
     implementation("androidx.camera:camera-video:1.3.2")
 
     // ML Kit Face Detection
-    implementation("com.google.mlkit:face-detection:16.1.5")
+    implementation("com.google.mlkit:face-detection:16.1.7")
 
     // Firebase
     implementation("com.google.firebase:firebase-database-ktx:20.3.1")

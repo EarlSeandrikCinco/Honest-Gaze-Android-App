@@ -1,11 +1,15 @@
 package com.example.honestgaze;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.graphics.PointF;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
+import android.util.Size;
+import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,217 +25,266 @@ import androidx.core.content.ContextCompat;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
-import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceContour;
 import com.google.mlkit.vision.face.FaceDetector;
 import com.google.mlkit.vision.face.FaceDetectorOptions;
+import com.google.mlkit.vision.face.FaceDetection;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class OngoingExamActivity extends AppCompatActivity {
 
-    private PreviewView cameraPreview;
-    private TextView warningText;
+    private static final int CAMERA_PERMISSION_CODE = 101;
 
-    private long lookAwayStartTime = 0;
-    private boolean isLookingAway = false;
+    // UI
+    private PreviewView previewView;
+    private TextView txtDebug, warningCounterText;
+    private LinearLayout calibrationOverlay;
+    private Button btnStartCalibration, btnCancelCalibration;
+    private TextView calibrationMessage;
 
-    private final long GRACE_PERIOD_MS = 1000; // 2 seconds
+    // ML Kit
+    private FaceDetector faceDetector;
 
-    private FaceDetector detector;
-    private ExecutorService cameraExecutor;
+    // Calibration
+    private boolean isCalibrating = false;
+    private int calibrationSamples = 0;
+    private float calibratedCenterX = 0;
+    private float calibratedCenterY = 0;
 
-    private long lastWarningTime = 0;
-    private final long WARNING_COOLDOWN_MS = 2500; // avoid spam warnings
-
-    private static final int PERMISSION_CODE = 100;
-    private static final String TAG = "HonestGazeExam";
+    // Exam warnings
+    private int remainingWarnings = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ongoing_exam);
 
-        cameraPreview = findViewById(R.id.cameraPreview);
-        warningText = findViewById(R.id.warningText);
+        bindViews();
+        setupFaceDetector();
 
-        cameraExecutor = Executors.newSingleThreadExecutor();
+        btnStartCalibration.setOnClickListener(v -> startCalibration());
+        btnCancelCalibration.setOnClickListener(v -> {
+            calibrationOverlay.setVisibility(LinearLayout.GONE);
+            Toast.makeText(this, "Calibration cancelled", Toast.LENGTH_SHORT).show();
+        });
 
-        if (!permissionsGranted()) {
-            requestPermissions();
-        } else {
-            startCamera();
-        }
+        // Show calibration instructions immediately
+        calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
 
-        setupMLKit();
+        if (hasCameraPermission()) startCamera();
+        else requestCameraPermission();
     }
 
-    private boolean permissionsGranted() {
+    // ---------------------------------------------------
+    // Bind Views
+    // ---------------------------------------------------
+    private void bindViews() {
+        previewView = findViewById(R.id.previewView);
+        txtDebug = findViewById(R.id.txtDebug);
+        warningCounterText = findViewById(R.id.warningCounterText);
+
+        calibrationOverlay = findViewById(R.id.calibrationOverlay);
+        calibrationMessage = findViewById(R.id.calibrationMessage);
+        btnStartCalibration = findViewById(R.id.btnStartCalibration);
+        btnCancelCalibration = findViewById(R.id.btnCancelCalibration);
+    }
+
+    // ---------------------------------------------------
+    // ML Kit Face Detector
+    // ---------------------------------------------------
+    private void setupFaceDetector() {
+        FaceDetectorOptions options = new FaceDetectorOptions.Builder()
+                .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
+                .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+                .enableTracking()
+                .build();
+
+        faceDetector = FaceDetection.getClient(options);
+    }
+
+    // ---------------------------------------------------
+    // Permissions
+    // ---------------------------------------------------
+    private boolean hasCameraPermission() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
-    private void requestPermissions() {
+    private void requestCameraPermission() {
         ActivityCompat.requestPermissions(
                 this,
                 new String[]{Manifest.permission.CAMERA},
-                PERMISSION_CODE
+                CAMERA_PERMISSION_CODE
         );
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-
+    public void onRequestPermissionsResult(
+            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == PERMISSION_CODE) {
-            if (permissionsGranted()) {
-                startCamera();
-            } else {
-                finish(); // Cannot run without camera permissions
-            }
+        if (requestCode == CAMERA_PERMISSION_CODE &&
+                grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            startCamera();
+        } else {
+            Toast.makeText(this, "Camera permission required", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void setupMLKit() {
-
-        FaceDetectorOptions options =
-                new FaceDetectorOptions.Builder()
-                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
-                        .setLandmarkMode(FaceDetectorOptions.LANDMARK_MODE_NONE)
-                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
-                        .setContourMode(FaceDetectorOptions.CONTOUR_MODE_NONE)
-                        .build();
-
-        detector = FaceDetection.getClient(options);
-    }
-
+    // ---------------------------------------------------
+    // CameraX Setup
+    // ---------------------------------------------------
     private void startCamera() {
-        ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
+        ListenableFuture<ProcessCameraProvider> providerFuture =
                 ProcessCameraProvider.getInstance(this);
 
-        cameraProviderFuture.addListener(() -> {
+        providerFuture.addListener(() -> {
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-
-                Preview preview = new Preview.Builder().build();
-                preview.setSurfaceProvider(cameraPreview.getSurfaceProvider());
-
-                ImageAnalysis analysis = new ImageAnalysis.Builder()
-                        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .build();
-
-                analysis.setAnalyzer(cameraExecutor, this::analyzeFrame);
-
-                CameraSelector cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA;
-
-                cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(
-                        this,
-                        cameraSelector,
-                        preview,
-                        analysis
-                );
-
+                ProcessCameraProvider cameraProvider = providerFuture.get();
+                bindCamera(cameraProvider);
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void analyzeFrame(@NonNull ImageProxy imageProxy) {
-        @SuppressWarnings("UnsafeOptInUsageError")
-        InputImage image = InputImage.fromMediaImage(
-                imageProxy.getImage(),
-                imageProxy.getImageInfo().getRotationDegrees()
+    @SuppressLint("UnsafeOptInUsageError")
+    private void bindCamera(ProcessCameraProvider provider) {
+        provider.unbindAll();
+
+        Preview preview = new Preview.Builder().build();
+        preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
+        CameraSelector selector = new CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                .build();
+
+        ImageAnalysis analysis = new ImageAnalysis.Builder()
+                .setTargetResolution(new Size(480, 640))
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .build();
+
+        analysis.setAnalyzer(
+                ContextCompat.getMainExecutor(this),
+                this::analyzeFrame
         );
 
-        detector.process(image)
-                .addOnSuccessListener(faces -> handleDetections(faces))
-                .addOnCompleteListener(task -> imageProxy.close());
+        provider.bindToLifecycle(this, selector, preview, analysis);
     }
 
-    private void handleDetections(List<Face> faces) {
-
-        if (faces.size() == 0) {
-            resetGazeState();
-            showWarning("No face detected");
+    // ---------------------------------------------------
+    // Frame Analysis
+    // ---------------------------------------------------
+    @SuppressLint("UnsafeOptInUsageError")
+    private void analyzeFrame(ImageProxy proxy) {
+        if (proxy.getImage() == null) {
+            proxy.close();
             return;
         }
 
-        if (faces.size() > 1) {
-            resetGazeState();
-            showWarning("Multiple faces detected");
+        InputImage img = InputImage.fromMediaImage(
+                proxy.getImage(),
+                proxy.getImageInfo().getRotationDegrees()
+        );
+
+        faceDetector.process(img)
+                .addOnSuccessListener(faces -> {
+                    if (!faces.isEmpty()) processFace(faces.get(0));
+                    else txtDebug.setText("No face detected");
+                })
+                .addOnCompleteListener(t -> proxy.close());
+    }
+
+    // ---------------------------------------------------
+    // Eye Center Helper
+    // ---------------------------------------------------
+    private PointF getEyeCenter(Face face, int contourType) {
+        FaceContour contour = face.getContour(contourType);
+        if (contour == null || contour.getPoints().isEmpty()) return null;
+
+        float sx = 0, sy = 0;
+        for (PointF p : contour.getPoints()) {
+            sx += p.x;
+            sy += p.y;
+        }
+        int n = contour.getPoints().size();
+        return new PointF(sx / n, sy / n);
+    }
+
+    // ---------------------------------------------------
+    // Processing Face + Gaze
+    // ---------------------------------------------------
+    private void processFace(Face face) {
+        PointF left = getEyeCenter(face, FaceContour.LEFT_EYE);
+        PointF right = getEyeCenter(face, FaceContour.RIGHT_EYE);
+
+        if (left == null || right == null) {
+            txtDebug.setText("Eye contours missing");
             return;
         }
 
-        Face face = faces.get(0);
+        float cx = (left.x + right.x) / 2f;
+        float cy = (left.y + right.y) / 2f;
 
-        float headEulerY = face.getHeadEulerAngleY();
-        float headEulerX = face.getHeadEulerAngleX();
+        txtDebug.setText("CX: " + cx + "\nCY: " + cy);
 
-        String direction = null;
+        if (isCalibrating) {
+            calibratedCenterX += cx;
+            calibratedCenterY += cy;
+            calibrationSamples++;
 
-        // LEFT/RIGHT
-        if (headEulerY < -20) direction = "right";
-        else if (headEulerY > 20) direction = "left";
+            calibrationMessage.setText("Calibrating... (" + calibrationSamples + "/30)");
 
-        // DOWN
-        if (headEulerX < -20) direction = "down";
-
-        if (direction == null) {
-            // User is looking normally → reset
-            resetGazeState();
+            if (calibrationSamples >= 30) finishCalibration();
             return;
         }
 
-        long now = System.currentTimeMillis();
+        detectGaze(cx, cy);
+    }
 
-        if (!isLookingAway) {
-            // First frame of looking away
-            isLookingAway = true;
-            lookAwayStartTime = now;
-            return;
+    // ---------------------------------------------------
+    // Calibration
+    // ---------------------------------------------------
+    private void startCalibration() {
+        calibrationSamples = 0;
+        calibratedCenterX = 0;
+        calibratedCenterY = 0;
+        isCalibrating = true;
+
+        calibrationMessage.setText("Please keep looking directly at your camera…");
+    }
+
+    private void finishCalibration() {
+        isCalibrating = false;
+
+        calibratedCenterX /= calibrationSamples;
+        calibratedCenterY /= calibrationSamples;
+
+        calibrationOverlay.setVisibility(LinearLayout.GONE);
+        Toast.makeText(this, "Calibration complete!", Toast.LENGTH_SHORT).show();
+    }
+
+    // ---------------------------------------------------
+    // Gaze Detection + Warning System
+    // ---------------------------------------------------
+    private void detectGaze(float cx, float cy) {
+        float dx = Math.abs(cx - calibratedCenterX);
+
+        float threshold = 25f; // adjust if too sensitive
+
+        if (dx > threshold) issueWarning();
+    }
+
+    private void issueWarning() {
+        remainingWarnings--;
+        warningCounterText.setText("Remaining warnings: " + remainingWarnings);
+
+        if (remainingWarnings <= 0) {
+            Toast.makeText(this, "Exam ended (too many warnings).", Toast.LENGTH_LONG).show();
+            finish();
         }
-
-        // If already looking away, check if grace period passed
-        if (now - lookAwayStartTime >= GRACE_PERIOD_MS) {
-            showWarning("You looked " + direction + " for too long");
-            resetGazeState();
-        }
-    }
-
-    private void resetGazeState() {
-        isLookingAway = false;
-        lookAwayStartTime = 0;
-    }
-
-
-
-
-    private void showWarning(String msg) {
-
-        long now = System.currentTimeMillis();
-        if (now - lastWarningTime < WARNING_COOLDOWN_MS) return;
-
-        lastWarningTime = now;
-
-        runOnUiThread(() -> {
-            warningText.setText("Warning: " + msg);
-            warningText.setVisibility(View.VISIBLE);
-            warningText.postDelayed(() -> warningText.setVisibility(View.GONE), 2000);
-        });
-
-        Log.w(TAG, "Suspicious Behavior: " + msg);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        cameraExecutor.shutdown();
-        if (detector != null) detector.close();
     }
 }

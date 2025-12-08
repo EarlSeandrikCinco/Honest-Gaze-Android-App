@@ -1,27 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000000"
+    tools:context=".OngoingExamActivity">
 
-    <!-- Camera Preview -->
+    <!-- Invisible Camera Feed -->
     <androidx.camera.view.PreviewView
-        android:id="@+id/cameraPreview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:id="@+id/previewView"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="invisible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Warning Banner -->
-    <TextView
-        android:id="@+id/warningText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:background="#AAFF4444"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:padding="12dp"
-        android:textSize="18sp"
+    <!-- Clean Black Monitoring Screen -->
+    <LinearLayout
+        android:id="@+id/screenCover"
+        android:orientation="vertical"
         android:gravity="center"
-        android:visibility="gone"
-        android:text="Warning: Suspicious Behavior Detected" />
+        android:padding="24dp"
+        android:background="#000000"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-</FrameLayout>
+        <!-- App Logo (cleanly sized) -->
+        <ImageView
+            android:id="@+id/coverLogo"
+            android:src="@drawable/honestgazelogo"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:contentDescription="App Logo"
+            android:tint="#FFFFFF"
+            android:layout_marginBottom="32dp" />
+
+        <!-- Main Monitoring Text -->
+        <TextView
+            android:id="@+id/monitorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You are now being monitored."
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"/>
+
+        <!-- Remaining Warnings -->
+        <TextView
+            android:id="@+id/warningCounterText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Remaining warnings: 3"
+            android:textColor="#FF5555"
+            android:textSize="18sp"
+            android:layout_marginTop="6dp"/>
+    </LinearLayout>
+
+    <!-- Debug Text (for developer use only) -->
+    <TextView
+        android:id="@+id/txtDebug"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Debug Info..."
+        android:textColor="#FFFFFF"
+        android:textSize="12sp"
+        android:background="#66000000"
+        android:padding="6dp"
+        android:layout_margin="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Calibration Overlay -->
+    <LinearLayout
+        android:id="@+id/calibrationOverlay"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="#CC000000"
+        android:padding="32dp"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/calibrationMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please look directly at your camera for calibration."
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:paddingBottom="24dp"
+            android:textAlignment="center"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btnStartCalibration"
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:text="OK" />
+
+            <Button
+                android:id="@+id/btnCancelCalibration"
+                android:layout_width="110dp"
+                android:layout_height="wrap_content"
+                android:text="Cancel"
+                android:layout_marginStart="16dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
