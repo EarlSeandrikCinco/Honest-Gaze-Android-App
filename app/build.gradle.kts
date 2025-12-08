@@ -41,18 +41,28 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
 
-    implementation("io.agora.rtc:full-sdk:4.6.1")
+    // CameraX
+    implementation("androidx.camera:camera-core:1.3.2")
+    implementation("androidx.camera:camera-camera2:1.3.2")
+    implementation("androidx.camera:camera-lifecycle:1.3.2")
+    implementation("androidx.camera:camera-view:1.3.2")
+    implementation("androidx.camera:camera-video:1.3.2")
+
+    // ML Kit Face Detection
+    implementation("com.google.mlkit:face-detection:16.1.5")
 
     // Firebase
     implementation("com.google.firebase:firebase-database-ktx:20.3.1")
     implementation("com.google.firebase:firebase-storage-ktx:20.2.0")
-    implementation("com.google.firebase:firebase-auth-ktx:22.1.0") // optional, only if you use authentication
+    implementation("com.google.firebase:firebase-auth-ktx:22.1.0")
 
-    // Optional: Kotlin coroutines for Firebase async operations
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
     implementation(libs.androidx.activity)
     implementation(libs.constraintlayout)
     testImplementation(libs.junit.junit)
 }
+
 
 apply(plugin = "com.google.gms.google-services")

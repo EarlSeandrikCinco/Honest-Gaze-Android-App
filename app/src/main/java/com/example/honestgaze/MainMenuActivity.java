@@ -19,7 +19,7 @@ public class MainMenuActivity extends AppCompatActivity {
         btnOngoingExam = findViewById(R.id.btnOngoingExam);
 
         btnStartCall.setOnClickListener(v ->
-                startActivity(new Intent(this, VideoCallActivity.class))
+                startActivity(new Intent(this, OngoingExamActivity.class))
         );
 
         btnViewReplay.setOnClickListener(v -> {
