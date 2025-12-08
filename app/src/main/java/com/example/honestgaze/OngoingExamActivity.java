@@ -65,7 +65,6 @@ public class OngoingExamActivity extends AppCompatActivity {
     // SoundPool for warning sound
     private SoundPool soundPool;
     private int calibrationDoneSoundId;
-    private int warningSoundId;
 
 
     @Override
@@ -99,17 +98,13 @@ public class OngoingExamActivity extends AppCompatActivity {
                 .setAudioAttributes(attributes)
                 .build();
 
-        // Load your warning sound from res/raw/warning.mp3
-        warningSoundId = soundPool.load(this, R.raw.warning, 1);
         calibrationDoneSoundId = soundPool.load(this, R.raw.calibrationdone, 1);
     }
 
     private void playCalibrationDoneSound() {
         soundPool.play(calibrationDoneSoundId, 1f, 1f, 1, 0, 1f);
     }
-    private void playWarningSound() {
-        soundPool.play(warningSoundId, 1f, 1f, 1, 0, 1f);
-    }
+
 
     @Override
     protected void onDestroy() {
@@ -338,7 +333,6 @@ public class OngoingExamActivity extends AppCompatActivity {
     private void issueWarning() {
         remainingWarnings--;
         warningCounterText.setText("Remaining warnings: " + remainingWarnings);
-        playWarningSound();
 
         if (remainingWarnings <= 0) {
             Toast.makeText(this, "Exam ended (too many warnings).", Toast.LENGTH_LONG).show();
