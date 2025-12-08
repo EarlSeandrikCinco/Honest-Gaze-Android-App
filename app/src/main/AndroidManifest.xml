@@ -61,12 +61,12 @@
             android:screenOrientation="portrait" />
         <activity android:name=".ReplayViewerActivity" android:exported="false" />
 
-        <!-- Other activities -->
-        <activity android:name=".ActivityVideoCall" android:exported="false" />
-        <activity android:name=".ActivitySummaryScreen" android:exported="false" />
-        <activity android:name=".ActivityRegister" android:exported="false" />
-        <activity android:name=".ActivitySelectRole" android:exported="false" />
-        <activity android:name=".ActivityWelcome" android:exported="false" />
+<!--        &lt;!&ndash; Other activities &ndash;&gt;-->
+<!--        <activity android:name=".ActivityVideoCall" android:exported="false" />-->
+<!--        <activity android:name=".ActivitySummaryScreen" android:exported="false" />-->
+<!--        <activity android:name=".ActivityRegister" android:exported="false" />-->
+<!--        <activity android:name=".ActivitySelectRole" android:exported="false" />-->
+<!--        <activity android:name=".ActivityWelcome" android:exported="false" />-->
 
     </application>
 
