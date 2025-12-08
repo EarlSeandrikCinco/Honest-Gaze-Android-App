@@ -45,10 +45,26 @@ public class LoginActivity extends AppCompatActivity {
                         if(task.isSuccessful()) {
                             FirebaseUser user = mAuth.getCurrentUser();
                             if(user != null) {
-                                // Login success, go to MainMenuActivity
-                                Intent intent = new Intent(LoginActivity.this, MainMenuActivity.class);
-                                startActivity(intent);
-                                finish();
+                                String emailStr = user.getEmail();
+                                if(emailStr != null) {
+                                    String name = "";
+
+                                    if(emailStr.startsWith("prof_")) {
+                                        // Extract first name for professor
+                                        name = emailStr.substring(5, emailStr.indexOf('@')); // after "prof_"
+                                        Intent intent = new Intent(LoginActivity.this, ProctorMenu.class);
+                                        intent.putExtra("USERNAME", name);
+                                        startActivity(intent);
+                                        finish();
+                                    } else if(emailStr.startsWith("student_")) {
+                                        // Extract first name for student
+                                        name = emailStr.substring(8, emailStr.indexOf('@')); // after "student_"
+                                        Intent intent = new Intent(LoginActivity.this, StudentMenuActivity.class);
+                                        intent.putExtra("USERNAME", name);
+                                        startActivity(intent);
+                                        finish();
+                                    }
+                                }
                             }
                         } else {
                             // Login failed

@@ -3,4 +3,5 @@
     <string name="hello_name">Hello, name</string>
     <string name="create_a_quiz">Create a Quiz</string>
     <string name="create_quiz">Create Quiz</string>
+    <string name="quiz_name">Quiz Name</string>
 </resources>
