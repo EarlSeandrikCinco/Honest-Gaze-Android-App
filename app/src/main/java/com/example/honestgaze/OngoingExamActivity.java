@@ -68,6 +68,7 @@ public class OngoingExamActivity extends AppCompatActivity {
     // SoundPool for warning sound
     private SoundPool soundPool;
     private int calibrationDoneSoundId;
+    private int calibrationStartSoundId;
     private int warningBeepSoundId;
 
 
@@ -100,19 +101,29 @@ public class OngoingExamActivity extends AppCompatActivity {
                 .build();
 
         soundPool = new SoundPool.Builder()
-                .setMaxStreams(2) // allow 2 sounds
+                .setMaxStreams(2)
                 .setAudioAttributes(attributes)
                 .build();
 
         calibrationDoneSoundId = soundPool.load(this, R.raw.calibrationdone, 1);
         warningBeepSoundId = soundPool.load(this, R.raw.warningbeep, 1);
+        calibrationStartSoundId = soundPool.load(this, R.raw.calibrationstart, 1);
+
+        soundPool.setOnLoadCompleteListener((soundPool, sampleId, status) -> {
+            if (status != 0) {
+                Toast.makeText(this, "Failed to load sound: " + sampleId, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
     private void playWarningBeep() {
         soundPool.play(warningBeepSoundId, 1f, 1f, 1, 0, 1f);
     }
 
-
+    private void playCalibrationStartSound() {
+        soundPool.play(calibrationStartSoundId, 1f, 1f, 1, 0, 1f);
+    }
     private void playCalibrationDoneSound() {
         soundPool.play(calibrationDoneSoundId, 1f, 1f, 1, 0, 1f);
     }
@@ -318,6 +329,8 @@ public class OngoingExamActivity extends AppCompatActivity {
     // Calibration
     // ---------------------------------------------------
     private void startCalibration() {
+        playCalibrationStartSound();
+
         calibrationSamples = 0;
         calibratedCenterX = 0;
         calibratedCenterY = 0;
@@ -325,6 +338,7 @@ public class OngoingExamActivity extends AppCompatActivity {
 
         calibrationMessage.setText("Please keep looking directly at your camera…");
     }
+
 
     private void finishCalibration() {
         isCalibrating = false;
