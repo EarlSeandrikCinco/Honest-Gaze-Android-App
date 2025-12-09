@@ -311,10 +311,35 @@ public class OngoingExamActivity extends AppCompatActivity {
     // Gaze Detection + Warning System
     // ---------------------------------------------------
     private void detectGaze(float cx, float cy) {
-        float dx = Math.abs(cx - calibratedCenterX);
-        float threshold = 25f; // adjust sensitivity
 
-        if (dx > threshold) {
+        float dx = cx - calibratedCenterX;
+        float dy = cy - calibratedCenterY;
+
+        // Directional thresholds
+        float thresholdLeft  = -25f;  // negative dx
+        float thresholdRight =  25f;  // positive dx
+
+        float thresholdUp    = -55f;  // very lenient
+        float thresholdDown  =  40f;  // lenient
+
+        boolean lookingAway = false;
+
+        // Horizontal detection
+        if (dx < thresholdLeft) {
+            lookingAway = true;   // too far left
+        } else if (dx > thresholdRight) {
+            lookingAway = true;   // too far right
+        }
+
+        // Vertical detection
+        if (dy < thresholdUp) {
+            lookingAway = true;   // looking too far up
+        } else if (dy > thresholdDown) {
+            lookingAway = true;   // looking too far down
+        }
+
+        // Timer behavior
+        if (lookingAway) {
             if (gazeAwayStartTime == 0) {
                 gazeAwayStartTime = System.currentTimeMillis();
             } else {
@@ -329,6 +354,7 @@ public class OngoingExamActivity extends AppCompatActivity {
             isLookingAway = false;
         }
     }
+
 
     private void issueWarning() {
         remainingWarnings--;
