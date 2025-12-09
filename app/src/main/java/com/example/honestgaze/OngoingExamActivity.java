@@ -62,9 +62,14 @@ public class OngoingExamActivity extends AppCompatActivity {
     private long gazeAwayStartTime = 0;
     private static final long WARNING_DELAY_MS = 2500; // 2.5 seconds grace period
 
+    private boolean hadFaceLastFrame = false;
+
+
     // SoundPool for warning sound
     private SoundPool soundPool;
     private int calibrationDoneSoundId;
+    private int warningBeepSoundId;
+
 
 
     @Override
@@ -93,13 +98,20 @@ public class OngoingExamActivity extends AppCompatActivity {
                 .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
+
         soundPool = new SoundPool.Builder()
-                .setMaxStreams(1)
+                .setMaxStreams(2) // allow 2 sounds
                 .setAudioAttributes(attributes)
                 .build();
 
         calibrationDoneSoundId = soundPool.load(this, R.raw.calibrationdone, 1);
+        warningBeepSoundId = soundPool.load(this, R.raw.warningbeep, 1);
     }
+
+    private void playWarningBeep() {
+        soundPool.play(warningBeepSoundId, 1f, 1f, 1, 0, 1f);
+    }
+
 
     private void playCalibrationDoneSound() {
         soundPool.play(calibrationDoneSoundId, 1f, 1f, 1, 0, 1f);
@@ -230,8 +242,27 @@ public class OngoingExamActivity extends AppCompatActivity {
 
         faceDetector.process(img)
                 .addOnSuccessListener(faces -> {
-                    if (!faces.isEmpty()) processFace(faces.get(0));
-                    else txtDebug.setText("No face detected");
+                    if (!faces.isEmpty()) {
+                        hadFaceLastFrame = true;
+                        processFace(faces.get(0));
+                    } else {
+                        txtDebug.setText("Face lost – treating as looking down/up");
+
+                        // Treat missing face as looking away
+                        boolean lookingAway = true;
+
+                        if (gazeAwayStartTime == 0) {
+                            gazeAwayStartTime = System.currentTimeMillis();
+                        } else {
+                            long elapsed = System.currentTimeMillis() - gazeAwayStartTime;
+                            if (elapsed >= WARNING_DELAY_MS && !isLookingAway) {
+                                issueWarning();
+                                isLookingAway = true;
+                            }
+                        }
+                    }
+
+
                 })
                 .addOnCompleteListener(t -> proxy.close());
     }
@@ -357,6 +388,8 @@ public class OngoingExamActivity extends AppCompatActivity {
 
 
     private void issueWarning() {
+        playWarningBeep();
+
         remainingWarnings--;
         warningCounterText.setText("Remaining warnings: " + remainingWarnings);
 
@@ -365,4 +398,5 @@ public class OngoingExamActivity extends AppCompatActivity {
             finish();
         }
     }
+
 }
