@@ -1,40 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/slate_bg"
+    android:padding="@dimen/spacing_xl">
 
+    <!-- Title -->
     <TextView
-        android:id="@+id/txtChooseRole"
+        android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="@dimen/spacing_hero_title"
         android:text="Are you a?"
-        android:textSize="28sp"
+        android:textSize="40sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="150dp"/>
+        android:textColor="@color/text_header" />
 
-    <Button
-        android:id="@+id/btnStudent"
-        android:layout_width="wrap_content"
+    <!-- Role Selection Card -->
+    <LinearLayout
+        android:id="@+id/layoutRoleSelection"
+        android:layout_width="@dimen/fixed_card_width"
         android:layout_height="wrap_content"
-        android:text="Student"
-        app:layout_constraintTop_toBottomOf="@id/txtChooseRole"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="40dp"/>
+        android:layout_centerHorizontal="true"
+        android:layout_below="@id/tvTitle"
+        android:layout_marginTop="@dimen/spacing_4xl"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_xl"
+        android:background="@color/slate_card"
+        android:elevation="6dp">
 
-    <Button
-        android:id="@+id/btnProctor"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Proctor"
-        app:layout_constraintTop_toBottomOf="@id/btnStudent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="20dp"/>
+        <!-- Student Button -->
+        <Button
+            android:id="@+id/btnStudent"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:text="Student"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/royal_blue"
+            android:textAllCaps="false"
+            android:elevation="2dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- Proctor Button -->
+        <Button
+            android:id="@+id/btnProctor"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="@dimen/spacing_lg"
+            android:text="Proctor"
+            android:textSize="18sp"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/royal_blue"
+            android:textAllCaps="false"
+            android:elevation="2dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>
