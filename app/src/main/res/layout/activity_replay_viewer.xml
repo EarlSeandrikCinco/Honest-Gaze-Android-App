@@ -1,11 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000">
+    android:background="@color/slate_bg">
 
-    <VideoView
-        android:id="@+id/videoView"
+    <!-- Centered video area -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-</RelativeLayout>
+        android:layout_height="match_parent"
+        android:padding="@dimen/spacing_xl">
+
+        <VideoView
+            android:id="@+id/videoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:layout_marginBottom="@dimen/video_bottom_inset"
+            android:background="@color/slate_card" />
+    </RelativeLayout>
+
+    <!-- Bottom control bar (visible if you add controls in code) -->
+    <LinearLayout
+        android:id="@+id/controlBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/control_bar_height"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingStart="@dimen/screen_padding"
+        android:paddingEnd="@dimen/screen_padding"
+        android:paddingTop="@dimen/spacing_md"
+        android:paddingBottom="@dimen/spacing_2xl"
+        android:background="@color/slate_card"
+        android:layout_gravity="bottom"
+        android:visibility="visible">
+
+        <Button
+            android:id="@+id/btnPlay"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_weight="1"
+            android:text="Play"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:background="@drawable/btn_royal"
+            android:textAllCaps="false" />
+
+        <Space
+            android:layout_width="@dimen/spacing_lg"
+            android:layout_height="1dp" />
+
+        <Button
+            android:id="@+id/btnPause"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_weight="1"
+            android:text="Pause"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:background="@drawable/btn_royal"
+            android:textAllCaps="false" />
+
+        <Space
+            android:layout_width="@dimen/spacing_lg"
+            android:layout_height="1dp" />
+
+        <Button
+            android:id="@+id/btnStop"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_weight="1"
+            android:text="Stop"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:background="@drawable/btn_royal"
+            android:textAllCaps="false" />
+    </LinearLayout>
+
+</FrameLayout>

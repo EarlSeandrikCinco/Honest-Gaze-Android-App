@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E8E8E8"
-    android:padding="20dp">
+    android:background="@color/slate_bg"
+    android:padding="@dimen/screen_padding">
 
-    <!-- Card Container with ScrollView -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:fillViewport="true"
-        android:scrollbarStyle="outsideInset"
-        android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
-        android:scrollbarSize="8dp"
-        android:fadeScrollbars="false">
+    <!-- Header Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardHeader"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:cardBackgroundColor="@color/slate_card"
+        app:cardUseCompatPadding="true"
+        app:cardElevation="@dimen/card_elevation"
+        app:cardCornerRadius="@dimen/card_corner_radius_lg"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_background"
-            android:padding="24dp"
-            android:elevation="4dp">
+            android:padding="@dimen/card_padding">
 
             <!-- Title -->
             <TextView
@@ -30,10 +31,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Quiz History"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textStyle="bold"
-                android:textColor="#000000"
-                android:layout_marginBottom="8dp" />
+                android:textColor="@color/text_header"
+                android:layout_marginBottom="@dimen/spacing_xs" />
 
             <!-- Description -->
             <TextView
@@ -42,130 +43,327 @@
                 android:layout_height="wrap_content"
                 android:text="Select a quiz to view your results and replay."
                 android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginBottom="24dp" />
+                android:textColor="@color/text_body" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
 
-            <!-- Quiz 1 Button -->
-            <Button
+    <!-- Scrollable List -->
+    <ScrollView
+        android:id="@+id/scrollViewHistory"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbarStyle="outsideInset"
+        android:scrollbarThumbVertical="@drawable/scrollbar_thumb"
+        android:scrollbarSize="@dimen/spacing_sm"
+        android:fadeScrollbars="false"
+        app:layout_constraintTop_toBottomOf="@id/cardHeader"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="@dimen/spacing_xl">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/spacing_sm"
+            android:paddingStart="@dimen/spacing_sm"
+            android:paddingEnd="@dimen/spacing_sm">
+
+            <!-- Quiz cards -->
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz1"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 1"
-                android:textSize="18sp"
-                android:textColor="#FF0000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 2 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 1"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz2"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 2"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 3 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 2"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz3"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 3"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 4 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 3"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz4"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 4"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 5 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 4"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz5"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 5"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 6 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 5"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz6"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 6"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 7 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 6"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz7"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 7"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 8 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 7"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz8"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 8"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 9 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 8"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz9"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 9"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false"
-                android:layout_marginBottom="16dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
 
-            <!-- Quiz 10 Button -->
-            <Button
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 9"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <androidx.cardview.widget.CardView
                 android:id="@+id/btnQuiz10"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
-                android:text="Quiz 10"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:background="@drawable/rounded_button_gray"
-                android:textAllCaps="false" />
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_lg"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/slate_card"
+                app:cardUseCompatPadding="true"
+                app:cardElevation="@dimen/card_elevation_sm"
+                app:cardCornerRadius="@dimen/card_corner_radius_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/list_item_padding">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Quiz 10"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_header" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
 
     </ScrollView>
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

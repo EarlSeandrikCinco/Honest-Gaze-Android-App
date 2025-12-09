@@ -2,8 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:padding="24dp">
+    android:background="@color/slate_bg"
+    android:padding="@dimen/spacing_xl">
 
     <!-- Hello Students! Title -->
     <TextView
@@ -11,49 +11,53 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="150dp"
+        android:layout_marginTop="@dimen/spacing_hero_title"
         android:text="Hello\nStudents!"
         android:textSize="40sp"
         android:textStyle="bold"
-        android:textColor="#000000"
+        android:textColor="@color/text_header"
         android:lineSpacingMultiplier="0.85"
         android:gravity="start" />
 
     <!-- Enter Quiz Section -->
     <LinearLayout
         android:id="@+id/layoutEnterQuiz"
-        android:layout_width="280dp"
+        android:layout_width="@dimen/fixed_card_width"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/tvTitle"
-        android:layout_marginTop="60dp"
-        android:orientation="vertical">
+        android:layout_marginTop="@dimen/spacing_4xl"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_xl"
+        android:background="@color/slate_card"
+        android:elevation="6dp"
+        android:clipToPadding="false">
 
         <!-- Enter Quiz Button -->
         <Button
             android:id="@+id/btnEnterQuiz"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
+            android:layout_height="@dimen/button_height"
             android:text="Enter Quiz"
             android:textSize="18sp"
-            android:textColor="#000000"
-            android:background="@drawable/rounded_button_gray"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/royal_blue"
             android:textAllCaps="false"
-            android:elevation="0dp" />
+            android:elevation="2dp" />
 
         <!-- Text Field for Quiz Link -->
         <EditText
             android:id="@+id/etQuizLink"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:layout_marginTop="12dp"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginTop="@dimen/spacing_lg"
             android:hint="Enter Room link..."
             android:textSize="16sp"
-            android:textColor="#000000"
-            android:textColorHint="#999999"
+            android:textColor="@color/text_header"
+            android:textColorHint="@color/text_body"
             android:background="@drawable/rounded_edittext"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
+            android:paddingStart="@dimen/card_padding"
+            android:paddingEnd="@dimen/card_padding"
             android:inputType="textUri"
             android:singleLine="true" />
 
@@ -62,16 +66,16 @@
     <!-- History Button -->
     <Button
         android:id="@+id/btnHistory"
-        android:layout_width="280dp"
-        android:layout_height="55dp"
+        android:layout_width="@dimen/fixed_card_width"
+        android:layout_height="@dimen/button_height"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/layoutEnterQuiz"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="@dimen/spacing_2xl"
         android:text="History"
         android:textSize="18sp"
-        android:textColor="#000000"
-        android:background="@drawable/rounded_button_gray"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/royal_blue"
         android:textAllCaps="false"
-        android:elevation="0dp" />
+        android:elevation="2dp" />
 
 </RelativeLayout>
