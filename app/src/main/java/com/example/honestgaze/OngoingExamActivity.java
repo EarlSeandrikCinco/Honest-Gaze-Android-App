@@ -91,9 +91,25 @@ public class OngoingExamActivity extends AppCompatActivity {
 
         btnStartCalibration.setOnClickListener(v -> startCalibration());
         btnCancelCalibration.setOnClickListener(v -> {
+            // Stop calibration
+            isCalibrating = false;
+            isCalibrated = false;
+
+            // reset variables
+            calibrationSamples = 0;
+            calibratedCenterX = 0;
+            calibratedCenterY = 0;
+
+            // Hide overlay
             calibrationOverlay.setVisibility(LinearLayout.GONE);
+
+            // Show toast
             Toast.makeText(this, "Calibration cancelled", Toast.LENGTH_SHORT).show();
+
+            // Go back to previous screen
+            finish(); // ends this activity
         });
+
 
         calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
 
@@ -431,7 +447,13 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     private void issueWarning() {
         playWarningBeep();
-        showPopupWarning("Looking away!");
+
+        // Randomly choose a warning message
+        String[] messages = {"Looking away!", "Focus on the exam!", "No cheating!"};
+        int index = (int) (Math.random() * messages.length);
+        String randomMessage = messages[index];
+
+        showPopupWarning(randomMessage);
 
         remainingWarnings--;
         warningCounterText.setText("Remaining warnings: " + remainingWarnings);
@@ -441,5 +463,6 @@ public class OngoingExamActivity extends AppCompatActivity {
             finish();
         }
     }
+
 
 }
