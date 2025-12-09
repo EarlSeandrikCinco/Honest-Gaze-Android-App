@@ -51,6 +51,9 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     // Calibration
     private boolean isCalibrating = false;
+
+    private boolean isCalibrated = false;
+
     private int calibrationSamples = 0;
     private float calibratedCenterX = 0;
     private float calibratedCenterY = 0;
@@ -64,12 +67,16 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     private boolean hadFaceLastFrame = false;
 
+    private TextView popupWarning;
+
 
     // SoundPool for warning sound
     private SoundPool soundPool;
     private int calibrationDoneSoundId;
     private int calibrationStartSoundId;
     private int warningBeepSoundId;
+
+
 
 
 
@@ -149,7 +156,25 @@ public class OngoingExamActivity extends AppCompatActivity {
         calibrationMessage = findViewById(R.id.calibrationMessage);
         btnStartCalibration = findViewById(R.id.btnStartCalibration);
         btnCancelCalibration = findViewById(R.id.btnCancelCalibration);
+
+        popupWarning = findViewById(R.id.popupWarning);
     }
+
+    private void showPopupWarning(String message) {
+        popupWarning.setText(message);
+
+        popupWarning.setAlpha(1f);
+        popupWarning.setVisibility(TextView.VISIBLE);
+        popupWarning.bringToFront(); // <-- ensures it's above all other views
+
+        popupWarning.animate()
+                .alpha(0f)
+                .setDuration(8000)
+                .withEndAction(() -> popupWarning.setVisibility(TextView.GONE))
+                .start();
+    }
+
+
 
     // ---------------------------------------------------
     // ML Kit Face Detector
@@ -315,15 +340,18 @@ public class OngoingExamActivity extends AppCompatActivity {
             calibratedCenterX += cx;
             calibratedCenterY += cy;
             calibrationSamples++;
-
             calibrationMessage.setText("Calibrating... (" + calibrationSamples + "/30)");
 
             if (calibrationSamples >= 30) finishCalibration();
             return;
         }
 
-        detectGaze(cx, cy);
+        // Only detect gaze if calibration is done
+        if (isCalibrated) {
+            detectGaze(cx, cy);
+        }
     }
+
 
     // ---------------------------------------------------
     // Calibration
@@ -342,13 +370,13 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     private void finishCalibration() {
         isCalibrating = false;
-
+        isCalibrated = true; // calibration is done
         calibratedCenterX /= calibrationSamples;
         calibratedCenterY /= calibrationSamples;
 
         calibrationOverlay.setVisibility(LinearLayout.GONE);
         Toast.makeText(this, "Calibration complete!", Toast.LENGTH_SHORT).show();
-        playCalibrationDoneSound(); // play calibration sound
+        playCalibrationDoneSound();
     }
 
 
@@ -403,6 +431,7 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     private void issueWarning() {
         playWarningBeep();
+        showPopupWarning("Looking away!");
 
         remainingWarnings--;
         warningCounterText.setText("Remaining warnings: " + remainingWarnings);

@@ -8,6 +8,24 @@
     android:background="#000000"
     tools:context=".OngoingExamActivity">
 
+    <TextView
+        android:id="@+id/popupWarning"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:text="Looking away!"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:background="#AAFF0000"
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
     <!-- Invisible Camera Feed -->
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
@@ -38,8 +56,8 @@
             android:layout_width="280dp"
             android:layout_height="280dp"
             android:contentDescription="App Logo"
-            android:tint="#FFFFFF"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="32dp"
+            app:tint="#FFFFFF" />
 
         <!-- Main Monitoring Text -->
         <TextView
