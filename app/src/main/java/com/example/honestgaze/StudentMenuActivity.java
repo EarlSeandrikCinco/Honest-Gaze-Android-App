@@ -24,23 +24,20 @@ public class StudentMenuActivity extends AppCompatActivity {
         btnHistory = findViewById(R.id.btnHistory);
 
         btnEnterQuiz.setOnClickListener(v -> {
-            String quizLink = etQuizLink.getText().toString().trim();
+            String roomLink = etQuizLink.getText().toString().trim();
 
-            if (quizLink.isEmpty()) {
-                Toast.makeText(this, "Please enter a quiz link", Toast.LENGTH_SHORT).show();
+            if (roomLink.isEmpty()) {
+                Toast.makeText(this, "Please enter a room link", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Check if it's a valid URL
-            if (!quizLink.startsWith("http://") && !quizLink.startsWith("https://")) {
-                quizLink = "https://" + quizLink;
-            }
-
-            // Open quiz with camera monitoring
-            Intent intent = new Intent(StudentMenuActivity.this, QuizTakingActivity.class);
-            intent.putExtra("quizLink", quizLink);
+            // Start OngoingExamActivity
+            Intent intent = new Intent(StudentMenuActivity.this, OngoingExamActivity.class);
+            // Optionally pass the quiz link if you want
+            intent.putExtra("ROOM_LINK", roomLink);
             startActivity(intent);
         });
+
 
         btnHistory.setOnClickListener(v -> {
             Intent intent = new Intent(StudentMenuActivity.this, HistoryActivity.class);

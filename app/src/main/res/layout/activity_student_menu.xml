@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="55dp"
             android:layout_marginTop="12dp"
-            android:hint="Enter quiz link..."
+            android:hint="Enter Room link..."
             android:textSize="16sp"
             android:textColor="#000000"
             android:textColorHint="#999999"
