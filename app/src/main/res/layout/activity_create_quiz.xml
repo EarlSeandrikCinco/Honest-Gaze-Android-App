@@ -9,41 +9,7 @@
     android:background="#F2F2F2"
     tools:context=".CreateQuiz">
 
-    <!-- Header Icon -->
-
-    <!-- Title -->
-
-
     <!-- Back Button -->
-
-    <ImageButton
-        android:id="@+id/imageButton2"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="20dp"
-        android:background="@android:color/transparent"
-        android:contentDescription="@string/hello_name"
-        android:src="@mipmap/ic_launcher"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="238dp"
-        android:layout_height="44dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="28dp"
-        android:gravity="center"
-        android:text="Create a Quiz"
-        android:textColor="#000000"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.121"
-        app:layout_constraintStart_toEndOf="@id/backButton"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <ImageButton
         android:id="@+id/backButton"
         android:layout_width="50dp"
@@ -56,6 +22,22 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="24dp"/>
 
+    <!-- Title -->
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Create a Quiz"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:gravity="center"
+        app:layout_constraintStart_toEndOf="@id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="28dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="16dp"/>
 
     <!-- Quiz Name -->
     <EditText
@@ -86,7 +68,7 @@
         app:layout_constraintStart_toStartOf="@id/inputField"
         android:layout_marginTop="24dp"/>
 
-    <!-- Option 1 -->
+    <!-- Grace Period -->
     <EditText
         android:id="@+id/inputField2"
         android:layout_width="0dp"
@@ -113,12 +95,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="16dp"/>
 
-    <!-- Option 2 -->
+    <!-- Warning Cooldown -->
     <EditText
         android:id="@+id/inputField3"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:hint="Warning cooldown"
+        android:hint="Warning Cooldown"
         android:padding="12dp"
         android:textSize="16sp"
         android:background="@drawable/rounded_edittext"
@@ -140,12 +122,12 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="16dp"/>
 
-    <!-- Option 3 -->
+    <!-- Number of Warnings -->
     <EditText
         android:id="@+id/inputField4"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:hint="Number of warnings"
+        android:hint="Number of Warnings"
         android:padding="12dp"
         android:textSize="16sp"
         android:background="@drawable/rounded_edittext"
@@ -167,45 +149,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="16dp"/>
 
-    <!-- Option 4 (no more button) -->
-    <EditText
-        android:id="@+id/inputField5"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:hint="Copy this!"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:background="@drawable/rounded_edittext"
-        app:layout_constraintTop_toBottomOf="@id/inputField4"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"/>
-
-    <!-- Copy Text Button -->
-    <Button
-        android:id="@+id/btnCopy"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:text="Copy Text"
-        android:textSize="10sp"
-        android:background="@drawable/rounded_button_gray"
-        android:textColor="#000"
-        app:layout_constraintTop_toBottomOf="@id/inputField5"
-        app:layout_constraintEnd_toEndOf="@id/inputField5"
-        android:layout_marginTop="16dp"/>
-
     <!-- Create Quiz Button -->
     <Button
         android:id="@+id/button2"
         android:layout_width="0dp"
         android:layout_height="60dp"
-        android:text="@string/create_quiz"
+        android:text="Create Quiz"
         android:textSize="18sp"
         android:textColor="#FFFFFF"
         android:background="@drawable/rounded_button_primary"
-        app:layout_constraintTop_toBottomOf="@id/btnCopy"
+        app:layout_constraintTop_toBottomOf="@id/inputField4"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"
