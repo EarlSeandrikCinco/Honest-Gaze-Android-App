@@ -16,7 +16,8 @@ public class ProctorMenu extends AppCompatActivity {
 
     private CardView cardButton1, cardButton2;
     private ImageButton btnProfile;
-    private TextView tvProctorTitle, tvHeader, tvFooter;
+    // Removed tvHeader from declaration
+    private TextView tvProctorTitle, tvFooter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,7 +28,7 @@ public class ProctorMenu extends AppCompatActivity {
         cardButton2 = findViewById(R.id.cardButton2);
         btnProfile = findViewById(R.id.btnProfile);
         tvProctorTitle = findViewById(R.id.tvProctorTitle);
-        tvHeader = findViewById(R.id.tvHeader);
+        // Removed the line: tvHeader = findViewById(R.id.tvHeader);
         tvFooter = findViewById(R.id.tvFooter);
 
         // Card Buttons Navigation

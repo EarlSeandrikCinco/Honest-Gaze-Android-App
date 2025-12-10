@@ -1,33 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
-    android:background="#FFF"
-    android:layout_marginBottom="8dp">
+    app:cardBackgroundColor="@color/slate_card"
+    app:cardUseCompatPadding="true"
+    app:cardElevation="@dimen/card_elevation_sm"
+    app:cardCornerRadius="@dimen/card_corner_radius_md"
+    android:layout_marginBottom="@dimen/spacing_sm">
 
-    <TextView
-        android:id="@+id/studentName"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Student Name"
-        android:textSize="18sp"
-        android:textStyle="bold"/>
+        android:orientation="horizontal"
+        android:padding="@dimen/list_item_padding"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/studentWarnings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Warnings: 0"
-        android:textSize="16sp"
-        android:layout_marginTop="4dp"/>
+        <!-- Student Avatar Circle -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:cardCornerRadius="24dp"
+            app:cardBackgroundColor="#E3F2FD"
+            app:cardElevation="0dp">
 
-    <TextView
-        android:id="@+id/studentEvents"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Events: 0"
-        android:textSize="16sp"
-        android:layout_marginTop="2dp"/>
-</LinearLayout>
+            <TextView
+                android:id="@+id/studentInitial"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="S"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/royal_blue"
+                android:gravity="center"/>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Student Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/spacing_lg">
+
+            <TextView
+                android:id="@+id/studentName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Student Name"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_header"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/spacing_xs">
+
+                <TextView
+                    android:id="@+id/studentWarnings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Warnings: 0"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_body"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" • "
+                    android:textSize="14sp"
+                    android:textColor="@color/text_body"/>
+
+                <TextView
+                    android:id="@+id/studentEvents"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Events: 0"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_body"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Status Indicator -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/statusIndicator"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            app:cardCornerRadius="6dp"
+            app:cardBackgroundColor="#4CAF50"
+            app:cardElevation="0dp"
+            android:layout_marginStart="@dimen/spacing_md"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
