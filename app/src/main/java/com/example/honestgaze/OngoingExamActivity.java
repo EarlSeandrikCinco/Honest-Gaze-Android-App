@@ -74,6 +74,7 @@ public class OngoingExamActivity extends AppCompatActivity {
     private SoundPool soundPool;
     private int calibrationDoneSoundId;
     private int calibrationStartSoundId;
+    private final int calibrationFrames = 100;
     private int warningBeepSoundId;
 
 
@@ -295,29 +296,64 @@ public class OngoingExamActivity extends AppCompatActivity {
         faceDetector.process(img)
                 .addOnSuccessListener(faces -> {
                     if (!faces.isEmpty()) {
+                        // We have a face -> reset 'hadFaceLastFrame' and handle it
                         hadFaceLastFrame = true;
                         processFace(faces.get(0));
                     } else {
-                        txtDebug.setText("Face lost – treating as looking down/up");
+                        // NO face detected
+                        if (isCalibrating) {
+                            // If we're calibrating, losing the face means restart calibration immediately
+                            txtDebug.setText("Face lost during calibration — restarting calibration");
+                            restartCalibration(); // you must have this helper implemented
+                            // Do NOT start warning timers while calibration restarts
+                            return;
+                        }
 
-                        // Treat missing face as looking away
-                        boolean lookingAway = true;
+                        // If not calibrated yet, ignore missing face (don't warn)
+                        if (!isCalibrated) {
+                            txtDebug.setText("No face detected (waiting for calibration)");
+                            // keep timers reset
+                            gazeAwayStartTime = 0;
+                            isLookingAway = false;
+                            return;
+                        }
 
-                        if (gazeAwayStartTime == 0) {
-                            gazeAwayStartTime = System.currentTimeMillis();
-                        } else {
-                            long elapsed = System.currentTimeMillis() - gazeAwayStartTime;
-                            if (elapsed >= WARNING_DELAY_MS && !isLookingAway) {
-                                issueWarning();
-                                isLookingAway = true;
+                        // If calibrated and face disappears, treat as looking away (but only if they had face before)
+                        if (hadFaceLastFrame) {
+                            txtDebug.setText("Face lost – treating as looking away");
+                            if (gazeAwayStartTime == 0) {
+                                gazeAwayStartTime = System.currentTimeMillis();
+                            } else {
+                                long elapsed = System.currentTimeMillis() - gazeAwayStartTime;
+                                if (elapsed >= WARNING_DELAY_MS && !isLookingAway) {
+                                    issueWarning();
+                                    isLookingAway = true;
+                                }
                             }
+                        } else {
+                            // never saw a face yet (rare), keep waiting
+                            txtDebug.setText("No face detected yet");
+                            gazeAwayStartTime = 0;
+                            isLookingAway = false;
                         }
                     }
-
-
                 })
-                .addOnCompleteListener(t -> proxy.close());
+                .addOnFailureListener(e -> {
+                    // handle detection error for debugging
+                    e.printStackTrace();
+                    txtDebug.setText("Face detection error: " + (e.getMessage() == null ? "unknown" : e.getMessage()));
+                })
+                .addOnCompleteListener(task -> {
+                    // Always close the proxy here (ML Kit callbacks complete)
+                    try {
+                        proxy.close();
+                    } catch (Exception ex) {
+                        // defensive: avoid crashes if already closed elsewhere
+                        ex.printStackTrace();
+                    }
+                });
     }
+
 
     // ---------------------------------------------------
     // Eye Center Helper
@@ -353,12 +389,28 @@ public class OngoingExamActivity extends AppCompatActivity {
         txtDebug.setText("CX: " + cx + "\nCY: " + cy);
 
         if (isCalibrating) {
+
+            // Compute gaze offsets relative to first sample
+            if (calibrationSamples > 0) {
+                float dx = cx - (calibratedCenterX / calibrationSamples);
+                float dy = cy - (calibratedCenterY / calibrationSamples);
+
+                boolean lookedAway =
+                        dx < -35f || dx > 35f ||   // left/right
+                                dy < -50f || dy > 50f;     // up/down
+
+                if (lookedAway) {
+                    restartCalibration();
+                    return;
+                }
+            }
+
             calibratedCenterX += cx;
             calibratedCenterY += cy;
             calibrationSamples++;
-            calibrationMessage.setText("Calibrating... (" + calibrationSamples + "/30)");
+            calibrationMessage.setText("Calibrating... (" + calibrationSamples + "/calibrationFrames)");
 
-            if (calibrationSamples >= 30) finishCalibration();
+            if (calibrationSamples >= calibrationFrames) finishCalibration();
             return;
         }
 
@@ -380,8 +432,25 @@ public class OngoingExamActivity extends AppCompatActivity {
         calibratedCenterY = 0;
         isCalibrating = true;
 
-        calibrationMessage.setText("Please keep looking directly at your camera…");
+        // Hide the start button during calibration
+        btnStartCalibration.setVisibility(Button.GONE);
+
+        calibrationMessage.setText("Please keep looking directly at your exam…");
     }
+
+
+    private void restartCalibration() {
+        isCalibrating = false;
+        calibrationSamples = 0;
+        calibratedCenterX = 0;
+        calibratedCenterY = 0;
+
+        calibrationMessage.setText("Calibration needs to restart. Press OK to begin.");
+
+        // Show start button again so user can retry
+        btnStartCalibration.setVisibility(Button.VISIBLE);
+    }
+
 
 
     private void finishCalibration() {

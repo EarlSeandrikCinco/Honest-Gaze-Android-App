@@ -115,7 +115,7 @@
             android:id="@+id/calibrationMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Please look directly at your camera for calibration."
+            android:text="Please look directly at your cz for calibration."
             android:textColor="#FFFFFF"
             android:textSize="20sp"
             android:paddingBottom="24dp"
