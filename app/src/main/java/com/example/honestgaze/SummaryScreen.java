@@ -20,6 +20,21 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import android.os.Environment;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import android.content.ContentValues;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.widget.Toast;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,6 +169,9 @@ public class SummaryScreen extends AppCompatActivity {
                 }
 
                 StringBuilder summary = new StringBuilder();
+                StringBuilder csvData = new StringBuilder();
+
+                csvData.append("Name,Warnings,Event\n"); // CSV header
 
                 for (DataSnapshot studentSnap : snapshot.getChildren()) {
                     String name = studentSnap.child("name").getValue(String.class);
@@ -161,36 +179,31 @@ public class SummaryScreen extends AppCompatActivity {
                     // Safely parse totalWarnings
                     Object totalObj = studentSnap.child("totalWarnings").getValue();
                     int totalWarnings = 0;
-                    if (totalObj != null) {
-                        if (totalObj instanceof Long) {
-                            totalWarnings = ((Long) totalObj).intValue();
-                        } else if (totalObj instanceof Integer) {
-                            totalWarnings = (Integer) totalObj;
-                        } else if (totalObj instanceof String) {
-                            try {
-                                totalWarnings = Integer.parseInt((String) totalObj);
-                            } catch (NumberFormatException e) {
-                                totalWarnings = 0;
-                            }
-                        }
+                    if (totalObj instanceof Long) totalWarnings = ((Long) totalObj).intValue();
+                    else if (totalObj instanceof Integer) totalWarnings = (Integer) totalObj;
+                    else if (totalObj instanceof String) {
+                        try { totalWarnings = Integer.parseInt((String) totalObj); } catch (NumberFormatException ignored) {}
                     }
 
                     summary.append(name != null ? name : "Unknown")
-                            .append(" - Warnings: ")
-                            .append(totalWarnings)
-                            .append("\n");
+                            .append(" - Warnings: ").append(totalWarnings).append("\n");
 
                     DataSnapshot eventsSnap = studentSnap.child("events");
                     if (eventsSnap.exists()) {
                         summary.append("Events:\n");
                         for (DataSnapshot event : eventsSnap.getChildren()) {
-                            summary.append("  • ").append(event.getValue(String.class)).append("\n");
+                            String eventStr = event.getValue(String.class);
+                            summary.append("  • ").append(eventStr).append("\n");
+                            csvData.append(name).append(",").append(totalWarnings).append(",")
+                                    .append(eventStr.replace(",", " ")).append("\n");
                         }
+                    } else {
+                        csvData.append(name).append(",").append(totalWarnings).append(",No events\n");
                     }
+
                     summary.append("\n");
                 }
 
-                // Scrollable TextView
                 TextView summaryView = new TextView(SummaryScreen.this);
                 summaryView.setText(summary.toString());
                 summaryView.setTextSize(16);
@@ -203,6 +216,9 @@ public class SummaryScreen extends AppCompatActivity {
                         .setTitle("Exam Summary")
                         .setView(scrollView)
                         .setPositiveButton("Close", null)
+                        .setNegativeButton("Export CSV", (dialog, which) -> {
+                            saveCsvToDownloads(roomId, csvData.toString());
+                        })
                         .show();
             }
 
@@ -210,4 +226,42 @@ public class SummaryScreen extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) { }
         });
     }
+
+    // New method to save CSV to user Downloads folder
+    private void saveCsvToDownloads(String roomId, String csvContent) {
+        String fileName = "exam_summary_" + roomId + ".csv";
+
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                // Use MediaStore for Android 10+
+                ContentValues values = new ContentValues();
+                values.put(android.provider.MediaStore.Downloads.DISPLAY_NAME, fileName);
+                values.put(android.provider.MediaStore.Downloads.MIME_TYPE, "text/csv");
+                values.put(android.provider.MediaStore.Downloads.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+
+                Uri uri = getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                if (uri != null) {
+                    try (OutputStream os = getContentResolver().openOutputStream(uri)) {
+                        os.write(csvContent.getBytes());
+                    }
+                    Toast.makeText(this, "CSV saved to Downloads.", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Failed to create file.", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                // Legacy approach for older Android versions
+                File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                File csvFile = new File(downloadsDir, fileName);
+                try (FileOutputStream fos = new FileOutputStream(csvFile)) {
+                    fos.write(csvContent.getBytes());
+                }
+                Toast.makeText(this, "CSV saved to Downloads: " + csvFile.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Failed to save CSV.", Toast.LENGTH_LONG).show();
+        }
+    }
+
+
 }
