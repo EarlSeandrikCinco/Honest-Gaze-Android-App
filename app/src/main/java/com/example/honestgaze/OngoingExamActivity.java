@@ -2,9 +2,11 @@ package com.example.honestgaze;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Size;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -23,6 +25,12 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ValueEventListener;
 import com.google.mlkit.vision.common.InputImage;
 import com.google.mlkit.vision.face.Face;
 import com.google.mlkit.vision.face.FaceContour;
@@ -37,8 +45,12 @@ import java.util.concurrent.ExecutionException;
 
 public class OngoingExamActivity extends AppCompatActivity {
 
+    private Handler heartbeatHandler = new Handler();
+    private Runnable heartbeatRunnable;
+
     private static final int CAMERA_PERMISSION_CODE = 101;
 
+    private DatabaseReference roomStatusRef;
     // UI
     private PreviewView previewView;
     private TextView txtDebug, warningCounterText;
@@ -63,7 +75,7 @@ public class OngoingExamActivity extends AppCompatActivity {
     private boolean isLookingAway = false;
 
     private long gazeAwayStartTime = 0;
-    private static final long WARNING_DELAY_MS = 2500; // 2.5 seconds grace period
+    private static long WARNING_DELAY_MS = 2500; // 2.5 seconds grace period
 
     private boolean hadFaceLastFrame = false;
 
@@ -76,9 +88,8 @@ public class OngoingExamActivity extends AppCompatActivity {
     private int calibrationStartSoundId;
     private final int calibrationFrames = 100;
     private int warningBeepSoundId;
-
-
-
+    private DatabaseReference roomRef;
+    private String studentId;
 
 
     @Override
@@ -86,9 +97,110 @@ public class OngoingExamActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ongoing_exam);
 
+        String roomId = getIntent().getStringExtra("ROOM_ID");
+        roomStatusRef = FirebaseDatabase.getInstance()
+                .getReference("rooms")
+                .child(roomId)
+                .child("active");
+
+        listenForRoomEnd();
         bindViews();
         setupFaceDetector();
         setupSoundPool();
+
+
+// Get ROOM_ID and student info from intent
+        roomId = getIntent().getStringExtra("ROOM_ID");
+        if (roomId == null || roomId.isEmpty()) {
+            Toast.makeText(this, "Invalid room. Cannot enter exam.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        studentId = "student_" + System.currentTimeMillis(); // unique ID
+        String studentName = getIntent().getStringExtra("STUDENT_NAME");
+        if (studentName == null || studentName.isEmpty()) {
+            studentName = "Student"; // fallback
+        }
+
+// Register student if not already existing
+        roomRef.child("students").child(studentId).child("name").setValue(studentName);
+        roomRef.child("students").child(studentId).child("totalWarnings").setValue(0);
+
+// Ensure room status is active
+        roomRef.child("status").setValue("active");
+
+        // Listen for room status changes
+// Room status listener (already done in your code)
+// Room status listener
+        roomRef = FirebaseDatabase.getInstance(
+                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        ).getReference("rooms").child(roomId);
+
+// Load room settings (gracePeriod, maxWarnings)
+        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // Get the quizKey for this room
+                    String quizKey = snapshot.child("quizKey").getValue(String.class);
+                    if (quizKey != null) {
+                        // Fetch quiz settings
+                        FirebaseDatabase.getInstance()
+                                .getReference("quizzes")
+                                .child(quizKey)
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
+                                        if (quizSnapshot.exists()) {
+                                            long graceMs = 2500; // default
+                                            int maxWarn = 3; // default
+
+                                            String graceStr = quizSnapshot.child("gracePeriod").getValue(String.class);
+                                            String maxWarnStr = quizSnapshot.child("maxWarnings").getValue(String.class);
+
+                                            try {
+                                                graceMs = Long.parseLong(graceStr);
+                                            } catch (Exception e) {}
+
+                                            try {
+                                                maxWarn = Integer.parseInt(maxWarnStr);
+                                            } catch (Exception e) {}
+
+                                            WARNING_DELAY_MS = graceMs;
+                                            remainingWarnings = maxWarn;
+                                            warningCounterText.setText("Remaining warnings: " + remainingWarnings);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError error) {}
+                                });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+
+
+
+
+// Heartbeat: update lastActive every 5 seconds
+        heartbeatRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (roomRef != null) {
+                    roomRef.child("students").child(studentId)
+                            .child("lastActive").setValue(ServerValue.TIMESTAMP)
+                            .addOnFailureListener(e -> heartbeatHandler.postDelayed(this, 5000)); // retry on failure
+                }
+                heartbeatHandler.postDelayed(this, 5000);
+            }
+        };
+        heartbeatHandler.post(heartbeatRunnable);
 
         btnStartCalibration.setOnClickListener(v -> startCalibration());
         btnCancelCalibration.setOnClickListener(v -> {
@@ -139,6 +251,28 @@ public class OngoingExamActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void listenForRoomEnd() {
+        roomStatusRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean active = snapshot.getValue(Boolean.class); // if you used boolean
+                if (active != null && !active) {
+                    Toast.makeText(OngoingExamActivity.this,
+                            "The session has ended by the professor.",
+                            Toast.LENGTH_LONG).show();
+
+                    // Optional: clean up student data here if needed
+
+                    finish(); // Close activity
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+    }
+
 
 
     private void playWarningBeep() {
@@ -221,6 +355,13 @@ public class OngoingExamActivity extends AppCompatActivity {
                 CAMERA_PERMISSION_CODE
         );
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        heartbeatHandler.removeCallbacks(heartbeatRunnable);
+    }
+
 
     @Override
     public void onRequestPermissionsResult(
@@ -517,21 +658,44 @@ public class OngoingExamActivity extends AppCompatActivity {
     private void issueWarning() {
         playWarningBeep();
 
-        // Randomly choose a warning message
         String[] messages = {"Looking away!", "Focus on the exam!", "No cheating!"};
         int index = (int) (Math.random() * messages.length);
         String randomMessage = messages[index];
-
         showPopupWarning(randomMessage);
 
         remainingWarnings--;
         warningCounterText.setText("Remaining warnings: " + remainingWarnings);
 
+        // Log the event in Firebase under the student's node
+        if (roomRef != null) {
+            long timestamp = System.currentTimeMillis();
+            roomRef.child("students").child(studentId)
+                    .child("events").child(String.valueOf(timestamp))
+                    .setValue("gazed away");
+
+            // Increment totalWarnings
+            roomRef.child("students").child(studentId)
+                    .child("totalWarnings").setValue(ServerValue.increment(1));
+        }
+
         if (remainingWarnings <= 0) {
-            Toast.makeText(this, "Exam ended (too many warnings).", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Exam ended due to too many warnings.", Toast.LENGTH_LONG).show();
+
+            if (roomRef != null) {
+                roomRef.child("status").setValue("ended");
+            }
+
+            // Go back to StudentMenuActivity
+            Intent intent = new Intent(OngoingExamActivity.this, StudentMenuActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+
             finish();
         }
+
     }
+
+
 
 
 }

@@ -1,11 +1,14 @@
 package com.example.honestgaze;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.PopupMenu;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,168 +16,137 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class CreateQuiz extends AppCompatActivity {
 
-    private static final String TAG = "CreateQuizDebug";
+    private EditText quizNameInput, graceInput, maxWarningsInput;
+    private Button btnCreate, btnCopyLink, btnEnterRoom;
+    private ImageButton backButton;
 
-    private EditText inputField, inputField2, inputField3, inputField4;
-    private ImageButton moreInput2, moreInput3, moreInput4, backButton;
-    private Button createQuizButton;
-    private DatabaseReference database;
+    private DatabaseReference quizzesRef;
+    private DatabaseReference roomsRef;
 
-    private int gracePeriod = 3;
-    private int warningCooldown = 1;
-    private int numberOfWarnings = 5;
+    private String roomId = "";
+    private String quizKey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_quiz);
 
-        // Firebase reference
-        database = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference("quizzes");
+        quizzesRef = FirebaseDatabase.getInstance().getReference("quizzes");
+        roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
 
-
-        // Inputs
-        inputField = findViewById(R.id.inputField);
-        inputField2 = findViewById(R.id.inputField2);
-        inputField3 = findViewById(R.id.inputField3);
-        inputField4 = findViewById(R.id.inputField4);
-
-        // More buttons
-        moreInput2 = findViewById(R.id.btnMore2);
-        moreInput3 = findViewById(R.id.btnMore3);
-        moreInput4 = findViewById(R.id.btnMore4);
-
-        // Back button
         backButton = findViewById(R.id.backButton);
+
+        // MATCHING YOUR XML IDs:
+        quizNameInput = findViewById(R.id.inputField);
+        graceInput = findViewById(R.id.inputField2);
+        //cooldownInput = findViewById(R.id.inputField3);
+        maxWarningsInput = findViewById(R.id.inputField4);
+
+        btnCreate = findViewById(R.id.button2);
+        btnCopyLink = findViewById(R.id.btnCopyLink);
+        btnEnterRoom = findViewById(R.id.btnEnterRoom);
+
+        btnCopyLink.setVisibility(View.GONE);
+        btnEnterRoom.setVisibility(View.GONE);
+
         backButton.setOnClickListener(v -> finish());
+        btnCreate.setOnClickListener(v -> createQuiz());
 
-        setupMoreButtons();
-
-        // Create quiz button
-        createQuizButton = findViewById(R.id.button2);
-        createQuizButton.setOnClickListener(v -> {
-            Log.d(TAG, "Create Quiz button clicked");
-            if (validateInputs()) {
-                Toast.makeText(this, "Valid inputs. Saving to Firebase...", Toast.LENGTH_SHORT).show();
-                Log.d(TAG, "Inputs valid, calling saveQuizToFirebase()");
-                saveQuizToFirebase();
-            } else {
-                Log.d(TAG, "Validation failed");
-            }
-        });
+        btnCopyLink.setOnClickListener(v -> copyRoomLink());
+        btnEnterRoom.setOnClickListener(v -> enterRoom());
     }
 
-    private void setupMoreButtons() {
-        moreInput2.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(this, moreInput2);
-            popup.getMenu().add("Set Grace Period (1-30s)");
-            popup.setOnMenuItemClickListener(item -> {
-                Toast.makeText(this, "Set Grace Period clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            });
-            popup.show();
-        });
+    private void createQuiz() {
+        String quizName = quizNameInput.getText().toString().trim();
+        String grace = graceInput.getText().toString().trim();
+        //String cooldown = cooldownInput.getText().toString().trim();
+        String maxWarnings = maxWarningsInput.getText().toString().trim();
 
-        moreInput3.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(this, moreInput3);
-            popup.getMenu().add("Set Warning Cooldown (≥ Grace Period, ≤ 60s)");
-            popup.setOnMenuItemClickListener(item -> {
-                Toast.makeText(this, "Set Warning Cooldown clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            });
-            popup.show();
-        });
-
-        moreInput4.setOnClickListener(v -> {
-            PopupMenu popup = new PopupMenu(this, moreInput4);
-            popup.getMenu().add("Set Number of Warnings (2-10)");
-            popup.setOnMenuItemClickListener(item -> {
-                Toast.makeText(this, "Set Number of Warnings clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            });
-            popup.show();
-        });
-    }
-
-    private boolean validateInputs() {
-        // Grace Period
-        try {
-            int val2 = Integer.parseInt(inputField2.getText().toString().trim());
-            if (val2 < 1 || val2 > 30) {
-                Toast.makeText(this, "Grace Period must be 1-30 seconds", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            gracePeriod = val2;
-        } catch (Exception e) {
-            Toast.makeText(this, "Invalid Grace Period", Toast.LENGTH_SHORT).show();
-            return false;
+        if (quizName.isEmpty()) {
+            Toast.makeText(this, "Enter quiz name", Toast.LENGTH_SHORT).show();
+            return;
         }
-
-        // Warning Cooldown
-        try {
-            int val3 = Integer.parseInt(inputField3.getText().toString().trim());
-            if (val3 < gracePeriod || val3 > 60) {
-                Toast.makeText(this, "Warning Cooldown must be ≥ Grace Period and ≤ 60 seconds", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            warningCooldown = val3;
-        } catch (Exception e) {
-            Toast.makeText(this, "Invalid Warning Cooldown", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        // Number of Warnings
-        try {
-            int val4 = Integer.parseInt(inputField4.getText().toString().trim());
-            if (val4 < 2 || val4 > 10) {
-                Toast.makeText(this, "Number of Warnings must be 2-10", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            numberOfWarnings = val4;
-        } catch (Exception e) {
-            Toast.makeText(this, "Invalid Number of Warnings", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        // Quiz Name
-        if (inputField.getText().toString().trim().isEmpty()) {
-            Toast.makeText(this, "Please enter a quiz name", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
-        return true;
-    }
-
-    private void saveQuizToFirebase() {
-        String quizName = inputField.getText().toString().trim();
-        String dateTime = new java.text.SimpleDateFormat(
-                "MMM dd, yyyy HH:mm", java.util.Locale.getDefault()
-        ).format(new java.util.Date());
-
-        Quiz quiz = new Quiz(quizName, dateTime, gracePeriod, warningCooldown, numberOfWarnings);
-
-        String key = database.push().getKey();
-        Log.d(TAG, "Generated key: " + key);
-
-        if (key == null) {
-            Toast.makeText(this, "Unexpected error: key is null", Toast.LENGTH_SHORT).show();
+// if (grace.isEmpty() || cooldown.isEmpty() || maxWarnings.isEmpty()) { // adjust
+        if (grace.isEmpty() || maxWarnings.isEmpty()) {
+            Toast.makeText(this, "Please fill all quiz options", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        database.child(key).setValue(quiz)
+
+        roomId = generateRoomId();
+        quizKey = quizzesRef.push().getKey();
+
+        if (quizKey == null) {
+            Toast.makeText(this, "Error generating quiz", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        saveQuizToFirebase(quizName, grace, maxWarnings);
+    }
+
+    private void saveQuizToFirebase(String quizName, String grace, String maxWarnings) {
+
+        Map<String, Object> quizData = new HashMap<>();
+        quizData.put("quizName", quizName);
+        quizData.put("gracePeriod", grace);
+        quizData.put("maxWarnings", maxWarnings);
+        quizData.put("roomId", roomId);
+        quizData.put("timestamp", System.currentTimeMillis());
+
+        quizzesRef.child(quizKey).setValue(quizData)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(CreateQuiz.this, "Quiz created successfully!", Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "Quiz saved successfully to Firebase");
-                    inputField.setText("");
-                    inputField2.setText("");
-                    inputField3.setText("");
-                    inputField4.setText("");
+                    setupRoomInFirebase();
+                    btnCopyLink.setVisibility(View.VISIBLE);
+                    btnEnterRoom.setVisibility(View.VISIBLE);
+                    Toast.makeText(this, "Quiz created successfully", Toast.LENGTH_SHORT).show();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(CreateQuiz.this, "Failed to create quiz: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to save quiz", e);
-                });
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to create quiz", Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    private void setupRoomInFirebase() {
+        Map<String, Object> roomData = new HashMap<>();
+        roomData.put("quizKey", quizKey);
+        roomData.put("active", true);
+        roomData.put("createdAt", System.currentTimeMillis());
+
+        roomsRef.child(roomId).setValue(roomData);
+    }
+
+    private void copyRoomLink() {
+        if (roomId.isEmpty()) {
+            Toast.makeText(this, "Room not available yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ClipboardManager clipboard = (ClipboardManager)
+                getSystemService(Context.CLIPBOARD_SERVICE);
+
+        ClipData clip = ClipData.newPlainText("Room Link", roomId);
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(this, "Room ID copied to clipboard", Toast.LENGTH_SHORT).show();
+    }
+
+    private void enterRoom() {
+        if (roomId.isEmpty()) {
+            Toast.makeText(this, "Room not available yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(CreateQuiz.this, RoomMonitorActivity.class);
+        intent.putExtra("ROOM_ID", roomId);
+        startActivity(intent);
+    }
+
+    private String generateRoomId() {
+        return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }

@@ -1,13 +1,19 @@
 package com.example.honestgaze;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class StudentMenuActivity extends AppCompatActivity {
 
@@ -31,13 +37,31 @@ public class StudentMenuActivity extends AppCompatActivity {
                 return;
             }
 
-            // Start OngoingExamActivity
-            Intent intent = new Intent(StudentMenuActivity.this, OngoingExamActivity.class);
-            // Optionally pass the quiz link if you want
-            intent.putExtra("ROOM_LINK", roomLink);
-            startActivity(intent);
-        });
+            // Check if the room exists in Firebase
+            DatabaseReference roomRef = FirebaseDatabase.getInstance(
+                    "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
+            ).getReference("rooms").child(roomLink);
 
+            roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        // Room exists, proceed to OngoingExamActivity
+                        Intent intent = new Intent(StudentMenuActivity.this, OngoingExamActivity.class);
+                        intent.putExtra("ROOM_ID", roomLink);
+                        startActivity(intent);
+                    } else {
+                        // Room does not exist
+                        Toast.makeText(StudentMenuActivity.this, "Invalid room link", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(StudentMenuActivity.this, "Error checking room: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
 
         btnHistory.setOnClickListener(v -> {
             Intent intent = new Intent(StudentMenuActivity.this, HistoryActivity.class);

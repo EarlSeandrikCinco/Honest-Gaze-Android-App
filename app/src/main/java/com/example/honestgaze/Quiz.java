@@ -7,15 +7,18 @@ public class Quiz {
     private int warningCooldown;
     private int numberOfWarnings;
 
+    private String roomId; // NEW: to connect with rooms
+
     // Empty constructor required for Firebase
     public Quiz() {}
 
-    public Quiz(String quizName, String dateTime, int gracePeriod, int warningCooldown, int numberOfWarnings) {
+    public Quiz(String quizName, String dateTime, int gracePeriod, int warningCooldown, int numberOfWarnings, String roomId) {
         this.quizName = quizName;
         this.dateTime = dateTime;
         this.gracePeriod = gracePeriod;
         this.warningCooldown = warningCooldown;
         this.numberOfWarnings = numberOfWarnings;
+        this.roomId = roomId;
     }
 
     // Getters
@@ -24,6 +27,7 @@ public class Quiz {
     public int getGracePeriod() { return gracePeriod; }
     public int getWarningCooldown() { return warningCooldown; }
     public int getNumberOfWarnings() { return numberOfWarnings; }
+    public String getRoomId() { return roomId; }
 
     // Setters
     public void setQuizName(String quizName) { this.quizName = quizName; }
@@ -31,4 +35,5 @@ public class Quiz {
     public void setGracePeriod(int gracePeriod) { this.gracePeriod = gracePeriod; }
     public void setWarningCooldown(int warningCooldown) { this.warningCooldown = warningCooldown; }
     public void setNumberOfWarnings(int numberOfWarnings) { this.numberOfWarnings = numberOfWarnings; }
+    public void setRoomId(String roomId) { this.roomId = roomId; }
 }

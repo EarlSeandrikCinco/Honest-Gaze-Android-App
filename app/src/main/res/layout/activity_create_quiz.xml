@@ -55,6 +55,8 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"/>
 
+
+
     <!-- Quiz Options Label -->
     <TextView
         android:id="@+id/textView4"
@@ -162,6 +164,38 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+
+    <!-- Copy Room Link Button -->
+    <Button
+        android:id="@+id/btnCopyLink"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:text="Copy Room Link"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/button2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+
+    <Button
+        android:id="@+id/btnEnterRoom"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:text="Enter Room"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:visibility="gone"
+        android:background="@drawable/rounded_button_primary"
+        app:layout_constraintTop_toBottomOf="@id/btnCopyLink"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="12dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"/>
 
