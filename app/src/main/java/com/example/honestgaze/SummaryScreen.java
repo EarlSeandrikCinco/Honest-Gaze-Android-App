@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.TypedValue;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -115,7 +114,8 @@ public class SummaryScreen extends AppCompatActivity {
             card.setForeground(ContextCompat.getDrawable(this, outValue.resourceId));
 
             TextView quizLabel = new TextView(this);
-            quizLabel.setText(quiz.getQuizName() + "\n" + quiz.getDateTime());
+            String dateTimeText = quiz.getDateTime() != null ? quiz.getDateTime() : "No date";
+            quizLabel.setText(quiz.getQuizName() + "\n" + dateTimeText);
             quizLabel.setTextSize(18);
             quizLabel.setTextColor(0xFF000000);
             card.addView(quizLabel);
@@ -129,9 +129,8 @@ public class SummaryScreen extends AppCompatActivity {
 
     private void showSummaryDialog(String roomId) {
         if (roomId == null || roomId.isEmpty()) {
-            // Room ID invalid, show toast
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Error")
+            new AlertDialog.Builder(this)
+                    .setTitle("Error")
                     .setMessage("Invalid room ID. Cannot fetch summary.")
                     .setPositiveButton("OK", null)
                     .show();
@@ -146,8 +145,8 @@ public class SummaryScreen extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(SummaryScreen.this);
-                    builder.setTitle("No Data")
+                    new AlertDialog.Builder(SummaryScreen.this)
+                            .setTitle("No Data")
                             .setMessage("No students found for this room.")
                             .setPositiveButton("OK", null)
                             .show();
@@ -158,10 +157,27 @@ public class SummaryScreen extends AppCompatActivity {
 
                 for (DataSnapshot studentSnap : snapshot.getChildren()) {
                     String name = studentSnap.child("name").getValue(String.class);
-                    Long totalWarnings = studentSnap.child("totalWarnings").getValue(Long.class);
+
+                    // Safely parse totalWarnings
+                    Object totalObj = studentSnap.child("totalWarnings").getValue();
+                    int totalWarnings = 0;
+                    if (totalObj != null) {
+                        if (totalObj instanceof Long) {
+                            totalWarnings = ((Long) totalObj).intValue();
+                        } else if (totalObj instanceof Integer) {
+                            totalWarnings = (Integer) totalObj;
+                        } else if (totalObj instanceof String) {
+                            try {
+                                totalWarnings = Integer.parseInt((String) totalObj);
+                            } catch (NumberFormatException e) {
+                                totalWarnings = 0;
+                            }
+                        }
+                    }
+
                     summary.append(name != null ? name : "Unknown")
                             .append(" - Warnings: ")
-                            .append(totalWarnings != null ? totalWarnings : 0)
+                            .append(totalWarnings)
                             .append("\n");
 
                     DataSnapshot eventsSnap = studentSnap.child("events");
@@ -183,8 +199,8 @@ public class SummaryScreen extends AppCompatActivity {
                 ScrollView scrollView = new ScrollView(SummaryScreen.this);
                 scrollView.addView(summaryView);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(SummaryScreen.this);
-                builder.setTitle("Exam Summary")
+                new AlertDialog.Builder(SummaryScreen.this)
+                        .setTitle("Exam Summary")
                         .setView(scrollView)
                         .setPositiveButton("Close", null)
                         .show();

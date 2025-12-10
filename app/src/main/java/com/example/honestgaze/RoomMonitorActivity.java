@@ -48,7 +48,7 @@ public class RoomMonitorActivity extends AppCompatActivity {
 
         roomLabel.setText("Room ID: " + roomId);
 
-        roomRef = FirebaseDatabase.getInstance()
+        roomRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                 .getReference("rooms").child(roomId).child("students");
 
         // Live updates
@@ -78,7 +78,7 @@ public class RoomMonitorActivity extends AppCompatActivity {
     }
 
     private void endSession() {
-        FirebaseDatabase.getInstance()
+        FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                 .getReference("rooms")
                 .child(roomId)
                 .child("status")

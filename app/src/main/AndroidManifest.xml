@@ -43,12 +43,10 @@
         <!-- NEW: Quiz Details Screen -->
         <activity android:name=".QuizDetailsActivity" android:exported="false" />
 
-        <!-- NEW: Quiz Taking with Proctoring -->
-        <activity
-            android:name=".QuizTakingActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-
+        <activity android:name=".RoomMonitorActivity" />
+        <activity android:name=".ExamSummaryActivity" />
+        <activity android:name=".ProfessorRoomActivity" />
+        <activity android:name=".QuizDetailActivity" />
         <!-- Existing activities -->
         <activity android:name=".ActivityQuizDetails" android:exported="false" />
         <activity android:name=".SummaryScreen" android:exported="false" />

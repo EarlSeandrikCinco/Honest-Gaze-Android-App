@@ -55,8 +55,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"/>
 
-
-
     <!-- Quiz Options Label -->
     <TextView
         android:id="@+id/textView4"
@@ -92,35 +90,9 @@
         android:layout_height="48dp"
         android:src="@drawable/baseline_more_vert_24"
         android:background="@android:color/transparent"
+        android:clickable="true"
         app:layout_constraintTop_toTopOf="@id/inputField2"
         app:layout_constraintBottom_toBottomOf="@id/inputField2"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="16dp"/>
-
-    <!-- Warning Cooldown -->
-    <EditText
-        android:id="@+id/inputField3"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:hint="Warning Cooldown"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:background="@drawable/rounded_edittext"
-        app:layout_constraintTop_toBottomOf="@id/inputField2"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnMore3"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="8dp"/>
-
-    <ImageButton
-        android:id="@+id/btnMore3"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/baseline_more_vert_24"
-        android:background="@android:color/transparent"
-        app:layout_constraintTop_toTopOf="@id/inputField3"
-        app:layout_constraintBottom_toBottomOf="@id/inputField3"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="16dp"/>
 
@@ -133,7 +105,7 @@
         android:padding="12dp"
         android:textSize="16sp"
         android:background="@drawable/rounded_edittext"
-        app:layout_constraintTop_toBottomOf="@id/inputField3"
+        app:layout_constraintTop_toBottomOf="@id/inputField2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/btnMore4"
         android:layout_marginTop="12dp"
@@ -146,6 +118,7 @@
         android:layout_height="48dp"
         android:src="@drawable/baseline_more_vert_24"
         android:background="@android:color/transparent"
+        android:clickable="true"
         app:layout_constraintTop_toTopOf="@id/inputField4"
         app:layout_constraintBottom_toBottomOf="@id/inputField4"
         app:layout_constraintEnd_toEndOf="parent"
@@ -190,8 +163,8 @@
         android:text="Enter Room"
         android:textSize="18sp"
         android:textColor="#FFFFFF"
-        android:visibility="gone"
         android:background="@drawable/rounded_button_primary"
+        android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/btnCopyLink"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

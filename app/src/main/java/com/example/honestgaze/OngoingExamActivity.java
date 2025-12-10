@@ -98,7 +98,7 @@ public class OngoingExamActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ongoing_exam);
 
         String roomId = getIntent().getStringExtra("ROOM_ID");
-        roomStatusRef = FirebaseDatabase.getInstance()
+        roomStatusRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                 .getReference("rooms")
                 .child(roomId)
                 .child("active");
@@ -146,7 +146,7 @@ public class OngoingExamActivity extends AppCompatActivity {
                     String quizKey = snapshot.child("quizKey").getValue(String.class);
                     if (quizKey != null) {
                         // Fetch quiz settings
-                        FirebaseDatabase.getInstance()
+                        FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                                 .getReference("quizzes")
                                 .child(quizKey)
                                 .addListenerForSingleValueEvent(new ValueEventListener() {

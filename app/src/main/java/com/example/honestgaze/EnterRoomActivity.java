@@ -41,7 +41,7 @@ public class EnterRoomActivity extends AppCompatActivity {
             if (studentName.isEmpty()) studentName = "Student";
 
             // Validate room exists
-            DatabaseReference roomRef = FirebaseDatabase.getInstance()
+            DatabaseReference roomRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                     .getReference("rooms").child(roomId);
 
             String finalStudentName = studentName;

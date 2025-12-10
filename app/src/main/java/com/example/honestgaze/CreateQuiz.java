@@ -16,7 +16,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -37,15 +40,16 @@ public class CreateQuiz extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_quiz);
 
-        quizzesRef = FirebaseDatabase.getInstance().getReference("quizzes");
-        roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
+        quizzesRef = FirebaseDatabase.getInstance(
+                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        ).getReference("quizzes");
+        roomsRef = FirebaseDatabase.getInstance(
+                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        ).getReference("rooms");
 
         backButton = findViewById(R.id.backButton);
-
-        // MATCHING YOUR XML IDs:
         quizNameInput = findViewById(R.id.inputField);
         graceInput = findViewById(R.id.inputField2);
-        //cooldownInput = findViewById(R.id.inputField3);
         maxWarningsInput = findViewById(R.id.inputField4);
 
         btnCreate = findViewById(R.id.button2);
@@ -57,7 +61,6 @@ public class CreateQuiz extends AppCompatActivity {
 
         backButton.setOnClickListener(v -> finish());
         btnCreate.setOnClickListener(v -> createQuiz());
-
         btnCopyLink.setOnClickListener(v -> copyRoomLink());
         btnEnterRoom.setOnClickListener(v -> enterRoom());
     }
@@ -65,19 +68,16 @@ public class CreateQuiz extends AppCompatActivity {
     private void createQuiz() {
         String quizName = quizNameInput.getText().toString().trim();
         String grace = graceInput.getText().toString().trim();
-        //String cooldown = cooldownInput.getText().toString().trim();
         String maxWarnings = maxWarningsInput.getText().toString().trim();
 
         if (quizName.isEmpty()) {
             Toast.makeText(this, "Enter quiz name", Toast.LENGTH_SHORT).show();
             return;
         }
-// if (grace.isEmpty() || cooldown.isEmpty() || maxWarnings.isEmpty()) { // adjust
         if (grace.isEmpty() || maxWarnings.isEmpty()) {
             Toast.makeText(this, "Please fill all quiz options", Toast.LENGTH_SHORT).show();
             return;
         }
-
 
         roomId = generateRoomId();
         quizKey = quizzesRef.push().getKey();
@@ -91,12 +91,15 @@ public class CreateQuiz extends AppCompatActivity {
     }
 
     private void saveQuizToFirebase(String quizName, String grace, String maxWarnings) {
+        String dateTime = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+                .format(new Date());
 
         Map<String, Object> quizData = new HashMap<>();
         quizData.put("quizName", quizName);
-        quizData.put("gracePeriod", grace);
-        quizData.put("maxWarnings", maxWarnings);
+        quizData.put("gracePeriod", Integer.parseInt(grace));
+        quizData.put("numberOfWarnings", Integer.parseInt(maxWarnings));
         quizData.put("roomId", roomId);
+        quizData.put("dateTime", dateTime); // ensure date/time is always present
         quizData.put("timestamp", System.currentTimeMillis());
 
         quizzesRef.child(quizKey).setValue(quizData)
@@ -126,9 +129,7 @@ public class CreateQuiz extends AppCompatActivity {
             return;
         }
 
-        ClipboardManager clipboard = (ClipboardManager)
-                getSystemService(Context.CLIPBOARD_SERVICE);
-
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("Room Link", roomId);
         clipboard.setPrimaryClip(clip);
 
