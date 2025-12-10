@@ -2,8 +2,11 @@ package com.example.honestgaze;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +20,19 @@ public class LoginActivity extends AppCompatActivity {
     Button btnLogin;
 
     FirebaseAuth mAuth;
+
+    private void showErrorToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.toast_error, null);
+
+        TextView tvMessage = layout.findViewById(R.id.tvToastError);
+        tvMessage.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setView(layout);
+        toast.show();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +63,7 @@ public class LoginActivity extends AppCompatActivity {
                             if(user != null) {
                                 String emailStr = user.getEmail();
                                 if(emailStr != null) {
-                                    String name = "";
+                                    String name;
 
                                     if(emailStr.startsWith("prof_")) {
                                         // Extract first name for professor
@@ -65,13 +81,13 @@ public class LoginActivity extends AppCompatActivity {
                                         finish();
                                     }
                                     else {
-                                        Toast.makeText(LoginActivity.this, "Invalid account type", Toast.LENGTH_SHORT).show();
+                                        showErrorToast("Invalid account type");
                                     }
                                 }
                             }
                         } else {
                             // Login failed
-                            Toast.makeText(LoginActivity.this, "No account exists or invalid credentials", Toast.LENGTH_SHORT).show();
+                            showErrorToast("No account exists or invalid credentials");
                         }
                     });
         });
