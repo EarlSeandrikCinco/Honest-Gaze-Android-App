@@ -97,76 +97,66 @@ public class OngoingExamActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ongoing_exam);
 
-        String roomId = getIntent().getStringExtra("ROOM_ID");
-        roomStatusRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
-                .getReference("rooms")
-                .child(roomId)
-                .child("active");
-
-        listenForRoomEnd();
+        // Bind UI first
         bindViews();
         setupFaceDetector();
         setupSoundPool();
 
-
-// Get ROOM_ID and student info from intent
-        roomId = getIntent().getStringExtra("ROOM_ID");
+        // Get ROOM_ID from intent
+        String roomId = getIntent().getStringExtra("ROOM_ID");
         if (roomId == null || roomId.isEmpty()) {
             Toast.makeText(this, "Invalid room. Cannot enter exam.", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        // Initialize roomRef BEFORE using it
+        roomRef = FirebaseDatabase.getInstance(
+                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
+        ).getReference("rooms").child(roomId);
+
+        // Initialize studentId and name
         studentId = "student_" + System.currentTimeMillis(); // unique ID
         String studentName = getIntent().getStringExtra("STUDENT_NAME");
         if (studentName == null || studentName.isEmpty()) {
             studentName = "Student"; // fallback
         }
 
-// Register student if not already existing
+        // Register student in the room
         roomRef.child("students").child(studentId).child("name").setValue(studentName);
         roomRef.child("students").child(studentId).child("totalWarnings").setValue(0);
 
-// Ensure room status is active
+        // Ensure room status is active
         roomRef.child("status").setValue("active");
 
-        // Listen for room status changes
-// Room status listener (already done in your code)
-// Room status listener
-        roomRef = FirebaseDatabase.getInstance(
-                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        ).getReference("rooms").child(roomId);
+        // Listen for room end
+        roomStatusRef = roomRef.child("active");
+        listenForRoomEnd();
 
-// Load room settings (gracePeriod, maxWarnings)
+        // Load room settings (gracePeriod, maxWarnings)
         roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
-                    // Get the quizKey for this room
                     String quizKey = snapshot.child("quizKey").getValue(String.class);
                     if (quizKey != null) {
-                        // Fetch quiz settings
-                        FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
-                                .getReference("quizzes")
-                                .child(quizKey)
+                        FirebaseDatabase.getInstance(
+                                        "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app"
+                                ).getReference("quizzes").child(quizKey)
                                 .addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
                                         if (quizSnapshot.exists()) {
                                             long graceMs = 2500; // default
                                             int maxWarn = 3; // default
-
-                                            String graceStr = quizSnapshot.child("gracePeriod").getValue(String.class);
-                                            String maxWarnStr = quizSnapshot.child("maxWarnings").getValue(String.class);
-
                                             try {
+                                                String graceStr = quizSnapshot.child("gracePeriod").getValue(String.class);
                                                 graceMs = Long.parseLong(graceStr);
-                                            } catch (Exception e) {}
-
+                                            } catch (Exception ignored) {}
                                             try {
+                                                String maxWarnStr = quizSnapshot.child("maxWarnings").getValue(String.class);
                                                 maxWarn = Integer.parseInt(maxWarnStr);
-                                            } catch (Exception e) {}
-
+                                            } catch (Exception ignored) {}
                                             WARNING_DELAY_MS = graceMs;
                                             remainingWarnings = maxWarn;
                                             warningCounterText.setText("Remaining warnings: " + remainingWarnings);
@@ -184,51 +174,40 @@ public class OngoingExamActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-
-
-
-
-// Heartbeat: update lastActive every 5 seconds
+        // Heartbeat: update lastActive every 5 seconds
         heartbeatRunnable = new Runnable() {
             @Override
             public void run() {
                 if (roomRef != null) {
                     roomRef.child("students").child(studentId)
                             .child("lastActive").setValue(ServerValue.TIMESTAMP)
-                            .addOnFailureListener(e -> heartbeatHandler.postDelayed(this, 5000)); // retry on failure
+                            .addOnFailureListener(e -> heartbeatHandler.postDelayed(this, 5000));
                 }
                 heartbeatHandler.postDelayed(this, 5000);
             }
         };
         heartbeatHandler.post(heartbeatRunnable);
 
+        // Calibration buttons
         btnStartCalibration.setOnClickListener(v -> startCalibration());
         btnCancelCalibration.setOnClickListener(v -> {
-            // Stop calibration
             isCalibrating = false;
             isCalibrated = false;
-
-            // reset variables
             calibrationSamples = 0;
             calibratedCenterX = 0;
             calibratedCenterY = 0;
-
-            // Hide overlay
             calibrationOverlay.setVisibility(LinearLayout.GONE);
-
-            // Show toast
             Toast.makeText(this, "Calibration cancelled", Toast.LENGTH_SHORT).show();
-
-            // Go back to previous screen
-            finish(); // ends this activity
+            finish();
         });
-
 
         calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
 
+        // Camera permission
         if (hasCameraPermission()) startCamera();
         else requestCameraPermission();
     }
+
 
     private void setupSoundPool() {
         AudioAttributes attributes = new AudioAttributes.Builder()
