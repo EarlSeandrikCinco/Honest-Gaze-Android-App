@@ -3,42 +3,42 @@ package com.example.honestgaze;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 public class ProctorMenu extends AppCompatActivity {
 
-    private ImageButton imageButton3;
-    private ImageButton imageButton5;
-    private ImageButton imageButton4;
+    private CardView cardButton1, cardButton2;
+    private ImageButton btnProfile;
+    private TextView tvProctorTitle, tvHeader, tvFooter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_proctor_menu);
 
-        imageButton3 = findViewById(R.id.imageButton3);
-        imageButton5 = findViewById(R.id.imageButton5);
-        imageButton4 = findViewById(R.id.imageButton4);
-        TextView textView = findViewById(R.id.textView);
+        cardButton1 = findViewById(R.id.cardButton1);
+        cardButton2 = findViewById(R.id.cardButton2);
+        btnProfile = findViewById(R.id.btnProfile);
+        tvProctorTitle = findViewById(R.id.tvProctorTitle);
+        tvHeader = findViewById(R.id.tvHeader);
+        tvFooter = findViewById(R.id.tvFooter);
 
-        // Top button → CreateQuiz
-        imageButton3.setOnClickListener(v -> {
+        // Card Buttons Navigation
+        cardButton1.setOnClickListener(v -> {
             Intent intent = new Intent(ProctorMenu.this, CreateQuiz.class);
             startActivity(intent);
         });
 
-        // Bottom button → SummaryScreen
-        imageButton5.setOnClickListener(v -> {
+        cardButton2.setOnClickListener(v -> {
             Intent intent = new Intent(ProctorMenu.this, SummaryScreen.class);
             startActivity(intent);
         });
-
-        // Optional small button
-        imageButton4.setOnClickListener(v -> {
-            // Add action here if needed
-        });
     }
-
 }
