@@ -11,13 +11,20 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText etUsername, etPassword;
+    EditText etEmail, etPassword;
     Button btnLogin;
+    TextView tvSignUp;
 
     FirebaseAuth mAuth;
 
@@ -39,15 +46,16 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        etUsername = findViewById(R.id.etUsername);
+        etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
+        tvSignUp = findViewById(R.id.tvSignUp);
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
         btnLogin.setOnClickListener(v -> {
-            String email = etUsername.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
             if(email.isEmpty() || password.isEmpty()) {
@@ -90,6 +98,20 @@ public class LoginActivity extends AppCompatActivity {
                             showErrorToast("No account exists or invalid credentials");
                         }
                     });
+        });
+
+        String signUpText = "Don't have an account? Sign up";
+        SpannableString spannable = new SpannableString(signUpText);
+        int signUpStart = signUpText.indexOf("Sign up");
+        if (signUpStart >= 0) {
+            int signUpEnd = signUpStart + "Sign up".length();
+            spannable.setSpan(new ForegroundColorSpan(Color.parseColor("#77CCFF")), signUpStart, signUpEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spannable.setSpan(new StyleSpan(Typeface.BOLD), signUpStart, signUpEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        tvSignUp.setText(spannable);
+        tvSignUp.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
         });
     }
 }

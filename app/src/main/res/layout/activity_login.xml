@@ -1,97 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/slate_bg"
-    android:padding="@dimen/spacing_xl">
+    android:background="@drawable/bg_gradient_space_gray"
+    android:padding="24dp">
 
-    <!-- Title -->
     <TextView
-        android:id="@+id/tvTitle"
+        android:id="@+id/tvHeading"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:gravity="center"
+        android:text="Log in to your account"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvSubheading"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="Welcome back! Please enter your details."
+        android:textColor="#9CA3AF"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="@id/tvHeading"
+        app:layout_constraintStart_toStartOf="@id/tvHeading"
+        app:layout_constraintTop_toBottomOf="@id/tvHeading" />
+
+    <EditText
+        android:id="@+id/etEmail"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="32dp"
+        android:background="@drawable/bg_input_field"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#9CA3AF"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="@id/tvHeading"
+        app:layout_constraintStart_toStartOf="@id/tvHeading"
+        app:layout_constraintTop_toBottomOf="@id/tvSubheading" />
+
+    <EditText
+        android:id="@+id/etPassword"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_input_field"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#9CA3AF"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="@id/etEmail"
+        app:layout_constraintStart_toStartOf="@id/etEmail"
+        app:layout_constraintTop_toBottomOf="@id/etEmail" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/btn_gradient_blue"
+        android:elevation="2dp"
+        android:text="Log In"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@id/etPassword"
+        app:layout_constraintStart_toStartOf="@id/etPassword"
+        app:layout_constraintTop_toBottomOf="@id/etPassword" />
+
+    <TextView
+        android:id="@+id/tvSignUp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/spacing_hero_title"
-        android:text="Log In"
-        android:textSize="40sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_header" />
+        android:layout_marginBottom="24dp"
+        android:text="Don't have an account? Sign up"
+        android:textColor="#E5E7EB"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Login Form Card -->
-    <LinearLayout
-        android:id="@+id/layoutLoginForm"
-        android:layout_width="@dimen/fixed_card_width"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_below="@id/tvTitle"
-        android:layout_marginTop="@dimen/spacing_4xl"
-        android:orientation="vertical"
-        android:padding="@dimen/spacing_xl"
-        android:background="@color/slate_card"
-        android:elevation="6dp">
-
-        <!-- Username Field -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Username"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_body"
-            android:layout_marginBottom="@dimen/spacing_sm" />
-
-        <EditText
-            android:id="@+id/etUsername"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:hint="Enter username"
-            android:textSize="16sp"
-            android:textColor="#000000"
-            android:textColorHint="#888888"
-            android:background="@drawable/rounded_edittext"
-            android:paddingStart="@dimen/card_padding"
-            android:paddingEnd="@dimen/card_padding"
-            android:inputType="textPersonName"
-            android:singleLine="true" />
-
-        <!-- Password Field -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Password"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_body"
-            android:layout_marginTop="@dimen/spacing_lg"
-            android:layout_marginBottom="@dimen/spacing_sm" />
-
-        <EditText
-            android:id="@+id/etPassword"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:hint="Enter password"
-            android:textSize="16sp"
-            android:textColor="#000000"
-            android:textColorHint="#888888"
-            android:background="@drawable/rounded_edittext"
-            android:paddingStart="@dimen/card_padding"
-            android:paddingEnd="@dimen/card_padding"
-            android:inputType="textPassword"
-            android:singleLine="true" />
-
-        <!-- Login Button -->
-        <Button
-            android:id="@+id/btnLogin"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height"
-            android:layout_marginTop="@dimen/spacing_2xl"
-            android:text="Log In"
-            android:textSize="18sp"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/royal_blue"
-            android:textAllCaps="false"
-            android:elevation="2dp" />
-
-    </LinearLayout>
-
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
