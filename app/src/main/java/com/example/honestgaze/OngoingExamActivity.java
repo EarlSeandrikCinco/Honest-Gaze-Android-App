@@ -356,8 +356,8 @@ public class OngoingExamActivity extends AppCompatActivity {
         float dx=cx-calibratedCenterX;
         float dy=cy-calibratedCenterY;
         String direction=null;
-        if(dx<-25f) direction="right";
-        else if(dx>25f) direction="left";
+        if(dx<-25f) direction="left";
+        else if(dx>25f) direction="right";
         else if(dy<-55f) direction="up";
         else if(dy>40f) direction="down";
         if(direction!=null){

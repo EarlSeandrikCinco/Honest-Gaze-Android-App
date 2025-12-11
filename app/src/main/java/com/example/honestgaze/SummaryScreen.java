@@ -143,121 +143,84 @@ public class SummaryScreen extends AppCompatActivity {
     }
 
     private void showSummaryDialog(String roomId) {
-        if (roomId == null || roomId.isEmpty()) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Error")
-                    .setMessage("Invalid room ID. Cannot fetch summary.")
-                    .setPositiveButton("OK", null)
-                    .show();
-            return;
-        }
+        if (roomId == null || roomId.isEmpty()) return;
 
         DatabaseReference roomRef = FirebaseDatabase.getInstance(
                 "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        ).getReference("rooms").child(roomId);
+        ).getReference("rooms").child(roomId).child("students");
 
-        // First, fetch maxWarnings from the room settings
-        roomRef.child("maxWarnings").addListenerForSingleValueEvent(new ValueEventListener() {
+        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot maxSnap) {
-                int maxWarnings = 3; // default
-                if (maxSnap.exists()) {
-                    Object maxObj = maxSnap.getValue();
-                    if (maxObj instanceof Long) maxWarnings = ((Long) maxObj).intValue();
-                    else if (maxObj instanceof Integer) maxWarnings = (Integer) maxObj;
-                    else if (maxObj instanceof String) {
-                        try { maxWarnings = Integer.parseInt((String) maxObj); } catch (NumberFormatException ignored) {}
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) return;
+
+                StringBuilder summary = new StringBuilder();
+                StringBuilder csvData = new StringBuilder();
+
+                csvData.append("Name,Warnings Left,Event\n");
+
+                for (DataSnapshot studentSnap : snapshot.getChildren()) {
+                    String name = studentSnap.child("name").getValue(String.class);
+                    if (name == null) name = "Unknown";
+
+                    Object totalObj = studentSnap.child("totalWarnings").getValue();
+                    int totalWarnings = 0;
+                    if (totalObj instanceof Long) totalWarnings = ((Long) totalObj).intValue();
+                    else if (totalObj instanceof Integer) totalWarnings = (Integer) totalObj;
+                    else if (totalObj instanceof String) {
+                        try { totalWarnings = Integer.parseInt((String) totalObj); } catch (NumberFormatException ignored) {}
                     }
+
+                    int maxWarnings = 3; // or fetch per quiz if variable
+                    int warningsLeft = maxWarnings - totalWarnings;
+                    if (warningsLeft < 0) warningsLeft = 0;
+
+                    DataSnapshot eventsSnap = studentSnap.child("events");
+                    if (eventsSnap.exists()) {
+                        int currentWarningsLeft = warningsLeft;
+                        for (DataSnapshot eventSnap : eventsSnap.getChildren()) {
+                            String event = eventSnap.getValue(String.class);
+                            if (event == null) event = "Unknown event";
+
+                            summary.append(name).append(" ").append(currentWarningsLeft)
+                                    .append(" ").append(event).append("\n");
+
+                            csvData.append(name).append(",")
+                                    .append(currentWarningsLeft).append(",")
+                                    .append(event.replace(",", " ")).append("\n");
+
+                            if (currentWarningsLeft > 0) currentWarningsLeft--;
+                        }
+                    } else {
+                        summary.append(name).append(" ").append(warningsLeft)
+                                .append(" No events\n");
+                        csvData.append(name).append(",").append(warningsLeft).append(",No events\n");
+                    }
+
+                    summary.append("\n");
                 }
 
-                // Now fetch students and events
-                int finalMaxWarnings = maxWarnings;
-                int finalMaxWarnings1 = maxWarnings;
-                roomRef.child("students").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (!snapshot.exists()) {
-                            new AlertDialog.Builder(SummaryScreen.this)
-                                    .setTitle("No Data")
-                                    .setMessage("No students found for this room.")
-                                    .setPositiveButton("OK", null)
-                                    .show();
-                            return;
-                        }
+                // Display summary
+                TextView summaryView = new TextView(SummaryScreen.this);
+                summaryView.setText(summary.toString());
+                summaryView.setPadding(30, 30, 30, 30);
 
-                        StringBuilder summary = new StringBuilder();
-                        StringBuilder csvData = new StringBuilder();
-                        csvData.append("Name,Warnings Left,Event\n"); // CSV header
+                ScrollView scrollView = new ScrollView(SummaryScreen.this);
+                scrollView.addView(summaryView);
 
-                        for (DataSnapshot studentSnap : snapshot.getChildren()) {
-                            String name = studentSnap.child("name").getValue(String.class);
-
-                            // Safely parse totalWarnings
-                            Object totalObj = studentSnap.child("totalWarnings").getValue();
-                            int totalWarnings = 0;
-                            if (totalObj instanceof Long) totalWarnings = ((Long) totalObj).intValue();
-                            else if (totalObj instanceof Integer) totalWarnings = (Integer) totalObj;
-                            else if (totalObj instanceof String) {
-                                try { totalWarnings = Integer.parseInt((String) totalObj); } catch (NumberFormatException ignored) {}
-                            }
-
-                            int warningsLeft = finalMaxWarnings1 - totalWarnings;
-                            if (warningsLeft < 0) warningsLeft = 0;
-
-                            summary.append(name != null ? name : "Unknown")
-                                    .append(" - Warnings Left: ").append(warningsLeft).append("\n");
-
-                            DataSnapshot eventsSnap = studentSnap.child("events");
-                            if (eventsSnap.exists()) {
-                                summary.append("Events:\n");
-
-                                int currentWarningsLeft = warningsLeft; // copy for decrementing per event
-                                for (DataSnapshot event : eventsSnap.getChildren()) {
-                                    String eventStr = event.getValue(String.class);
-                                    summary.append("  • ").append(eventStr).append("\n");
-
-                                    csvData.append(name).append(",")
-                                            .append(currentWarningsLeft).append(",")
-                                            .append(eventStr.replace(",", " ")).append("\n");
-
-                                    // Decrement for next event
-                                    if (currentWarningsLeft > 0) currentWarningsLeft--;
-                                }
-                            } else {
-                                csvData.append(name).append(",").append(warningsLeft).append(",No events\n");
-                            }
-
-                            summary.append("\n");
-                        }
-
-
-                        TextView summaryView = new TextView(SummaryScreen.this);
-                        summaryView.setText(summary.toString());
-                        summaryView.setTextSize(16);
-                        summaryView.setPadding(30, 30, 30, 30);
-
-                        ScrollView scrollView = new ScrollView(SummaryScreen.this);
-                        scrollView.addView(summaryView);
-
-                        new AlertDialog.Builder(SummaryScreen.this)
-                                .setTitle("Exam Summary")
-                                .setView(scrollView)
-                                .setPositiveButton("Close", null)
-                                .setNegativeButton("Export CSV", (dialog, which) -> {
-                                    saveCsvToDownloads(roomId, csvData.toString());
-                                })
-                                .show();
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) { }
-                });
+                new AlertDialog.Builder(SummaryScreen.this)
+                        .setTitle("Exam Summary")
+                        .setView(scrollView)
+                        .setPositiveButton("Close", null)
+                        .setNegativeButton("Export CSV", (dialog, which) -> saveCsvToDownloads(roomId, csvData.toString()))
+                        .show();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
     }
+
 
 
     // New method to save CSV to user Downloads folder
