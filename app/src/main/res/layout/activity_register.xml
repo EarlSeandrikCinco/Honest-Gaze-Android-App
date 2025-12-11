@@ -32,7 +32,7 @@
             android:layout_marginTop="@dimen/spacing_4xl"
             android:orientation="vertical"
             android:padding="@dimen/spacing_xl"
-            android:background="@color/slate_card"
+            android:background="@drawable/card_background"
             android:elevation="6dp">
 
             <!-- Role Selection -->
@@ -40,10 +40,10 @@
                 android:id="@+id/txtRole"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Register as:"
+                android:text="Registering as :"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="@color/text_header"
+                android:textColor="@color/text_body"
                 android:layout_marginBottom="@dimen/spacing_lg" />
 
             <!-- Name Field -->
