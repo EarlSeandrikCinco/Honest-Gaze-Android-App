@@ -117,7 +117,7 @@ public class OngoingExamActivity extends AppCompatActivity {
         roomStatusRef = roomRef.child("active");
         listenForRoomEnd();
 
-        // Delay camera start and calibration until maxWarnings is fetched
+        // Fetch quiz settings first
         roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -131,24 +131,29 @@ public class OngoingExamActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
                                         if (quizSnapshot.exists()) {
+                                            // Default values
                                             long graceMs = 2500;
-                                            int maxWarn = 3; // fallback
+                                            int maxWarn = 3;
 
-                                            try {
-                                                graceMs = Long.parseLong(
-                                                        quizSnapshot.child("gracePeriod").getValue(String.class));
-                                            } catch (Exception ignored) {}
+                                            // Read gracePeriod safely
+                                            Object graceObj = quizSnapshot.child("gracePeriod").getValue();
+                                            if (graceObj instanceof Long) graceMs = (Long) graceObj;
+                                            else if (graceObj instanceof String) {
+                                                try { graceMs = Long.parseLong((String) graceObj); } catch (Exception ignored) {}
+                                            }
 
-                                            try {
-                                                maxWarn = Integer.parseInt(
-                                                        quizSnapshot.child("maxWarnings").getValue(String.class));
-                                            } catch (Exception ignored) {}
+                                            // Read maxWarnings safely
+                                            Object maxWarnObj = quizSnapshot.child("maxWarnings").getValue();
+                                            if (maxWarnObj instanceof Long) maxWarn = ((Long) maxWarnObj).intValue();
+                                            else if (maxWarnObj instanceof String) {
+                                                try { maxWarn = Integer.parseInt((String) maxWarnObj); } catch (Exception ignored) {}
+                                            }
 
                                             WARNING_DELAY_MS = graceMs;
                                             remainingWarnings = maxWarn;
                                             warningCounterText.setText("Warnings left: " + remainingWarnings);
 
-                                            // Now start camera and show calibration overlay
+                                            // Start camera and show calibration
                                             calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
                                             if (hasCameraPermission()) startCamera();
                                             else requestCameraPermission();
@@ -190,11 +195,6 @@ public class OngoingExamActivity extends AppCompatActivity {
             Toast.makeText(this, "Calibration cancelled", Toast.LENGTH_SHORT).show();
             finish();
         });
-
-        // REMOVE the previous lines:
-        // calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
-        // if (hasCameraPermission()) startCamera();
-        // else requestCameraPermission();
     }
 
     private void setupSoundPool() {
