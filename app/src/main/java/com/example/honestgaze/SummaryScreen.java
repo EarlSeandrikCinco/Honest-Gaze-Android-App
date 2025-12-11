@@ -154,78 +154,102 @@ public class SummaryScreen extends AppCompatActivity {
 
         DatabaseReference roomRef = FirebaseDatabase.getInstance(
                 "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
-        ).getReference("rooms").child(roomId).child("students");
+        ).getReference("rooms").child(roomId);
 
-        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        // First, fetch maxWarnings from the room settings
+        roomRef.child("maxWarnings").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    new AlertDialog.Builder(SummaryScreen.this)
-                            .setTitle("No Data")
-                            .setMessage("No students found for this room.")
-                            .setPositiveButton("OK", null)
-                            .show();
-                    return;
+            public void onDataChange(@NonNull DataSnapshot maxSnap) {
+                int maxWarnings = 3; // default
+                if (maxSnap.exists()) {
+                    Object maxObj = maxSnap.getValue();
+                    if (maxObj instanceof Long) maxWarnings = ((Long) maxObj).intValue();
+                    else if (maxObj instanceof Integer) maxWarnings = (Integer) maxObj;
+                    else if (maxObj instanceof String) {
+                        try { maxWarnings = Integer.parseInt((String) maxObj); } catch (NumberFormatException ignored) {}
+                    }
                 }
 
-                StringBuilder summary = new StringBuilder();
-                StringBuilder csvData = new StringBuilder();
-
-                csvData.append("Name,Warnings,Event\n"); // CSV header
-
-                for (DataSnapshot studentSnap : snapshot.getChildren()) {
-                    String name = studentSnap.child("name").getValue(String.class);
-
-                    // Safely parse totalWarnings
-                    Object totalObj = studentSnap.child("totalWarnings").getValue();
-                    int totalWarnings = 0;
-                    if (totalObj instanceof Long) totalWarnings = ((Long) totalObj).intValue();
-                    else if (totalObj instanceof Integer) totalWarnings = (Integer) totalObj;
-                    else if (totalObj instanceof String) {
-                        try { totalWarnings = Integer.parseInt((String) totalObj); } catch (NumberFormatException ignored) {}
-                    }
-
-                    summary.append(name != null ? name : "Unknown")
-                            .append(" - Warnings: ").append(totalWarnings).append("\n");
-
-                    DataSnapshot eventsSnap = studentSnap.child("events");
-                    if (eventsSnap.exists()) {
-                        summary.append("Events:\n");
-                        for (DataSnapshot event : eventsSnap.getChildren()) {
-                            String eventStr = event.getValue(String.class);
-                            summary.append("  • ").append(eventStr).append("\n");
-                            csvData.append(name).append(",").append(totalWarnings).append(",")
-                                    .append(eventStr.replace(",", " ")).append("\n");
+                // Now fetch students and events
+                int finalMaxWarnings = maxWarnings;
+                roomRef.child("students").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.exists()) {
+                            new AlertDialog.Builder(SummaryScreen.this)
+                                    .setTitle("No Data")
+                                    .setMessage("No students found for this room.")
+                                    .setPositiveButton("OK", null)
+                                    .show();
+                            return;
                         }
-                    } else {
-                        csvData.append(name).append(",").append(totalWarnings).append(",No events\n");
+
+                        StringBuilder summary = new StringBuilder();
+                        StringBuilder csvData = new StringBuilder();
+                        csvData.append("Name,Warnings Left,Event\n"); // CSV header
+
+                        for (DataSnapshot studentSnap : snapshot.getChildren()) {
+                            String name = studentSnap.child("name").getValue(String.class);
+
+                            // Safely parse totalWarnings
+                            Object totalObj = studentSnap.child("totalWarnings").getValue();
+                            int totalWarnings = 0;
+                            if (totalObj instanceof Long) totalWarnings = ((Long) totalObj).intValue();
+                            else if (totalObj instanceof Integer) totalWarnings = (Integer) totalObj;
+                            else if (totalObj instanceof String) {
+                                try { totalWarnings = Integer.parseInt((String) totalObj); } catch (NumberFormatException ignored) {}
+                            }
+
+                            int warningsLeft = finalMaxWarnings - totalWarnings;
+                            if (warningsLeft < 0) warningsLeft = 0;
+
+                            summary.append(name != null ? name : "Unknown")
+                                    .append(" - Warnings Left: ").append(warningsLeft).append("\n");
+
+                            DataSnapshot eventsSnap = studentSnap.child("events");
+                            if (eventsSnap.exists()) {
+                                summary.append("Events:\n");
+                                for (DataSnapshot event : eventsSnap.getChildren()) {
+                                    String eventStr = event.getValue(String.class);
+                                    summary.append("  • ").append(eventStr).append("\n");
+                                    csvData.append(name).append(",").append(warningsLeft).append(",")
+                                            .append(eventStr.replace(",", " ")).append("\n");
+                                }
+                            } else {
+                                csvData.append(name).append(",").append(warningsLeft).append(",No events\n");
+                            }
+
+                            summary.append("\n");
+                        }
+
+                        TextView summaryView = new TextView(SummaryScreen.this);
+                        summaryView.setText(summary.toString());
+                        summaryView.setTextSize(16);
+                        summaryView.setPadding(30, 30, 30, 30);
+
+                        ScrollView scrollView = new ScrollView(SummaryScreen.this);
+                        scrollView.addView(summaryView);
+
+                        new AlertDialog.Builder(SummaryScreen.this)
+                                .setTitle("Exam Summary")
+                                .setView(scrollView)
+                                .setPositiveButton("Close", null)
+                                .setNegativeButton("Export CSV", (dialog, which) -> {
+                                    saveCsvToDownloads(roomId, csvData.toString());
+                                })
+                                .show();
                     }
 
-                    summary.append("\n");
-                }
-
-                TextView summaryView = new TextView(SummaryScreen.this);
-                summaryView.setText(summary.toString());
-                summaryView.setTextSize(16);
-                summaryView.setPadding(30, 30, 30, 30);
-
-                ScrollView scrollView = new ScrollView(SummaryScreen.this);
-                scrollView.addView(summaryView);
-
-                new AlertDialog.Builder(SummaryScreen.this)
-                        .setTitle("Exam Summary")
-                        .setView(scrollView)
-                        .setPositiveButton("Close", null)
-                        .setNegativeButton("Export CSV", (dialog, which) -> {
-                            saveCsvToDownloads(roomId, csvData.toString());
-                        })
-                        .show();
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) { }
+                });
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) { }
         });
     }
+
 
     // New method to save CSV to user Downloads folder
     private void saveCsvToDownloads(String roomId, String csvContent) {
