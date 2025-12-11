@@ -131,29 +131,29 @@ public class OngoingExamActivity extends AppCompatActivity {
                                     @Override
                                     public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
                                         if (quizSnapshot.exists()) {
-                                            // Default values
+                                            // Defaults
                                             long graceMs = 2500;
                                             int maxWarn = 3;
 
-                                            // Read gracePeriod safely
+                                            // Grace period
                                             Object graceObj = quizSnapshot.child("gracePeriod").getValue();
                                             if (graceObj instanceof Long) graceMs = (Long) graceObj;
                                             else if (graceObj instanceof String) {
                                                 try { graceMs = Long.parseLong((String) graceObj); } catch (Exception ignored) {}
                                             }
 
-                                            // Read maxWarnings safely
-                                            Object maxWarnObj = quizSnapshot.child("maxWarnings").getValue();
-                                            if (maxWarnObj instanceof Long) maxWarn = ((Long) maxWarnObj).intValue();
-                                            else if (maxWarnObj instanceof String) {
-                                                try { maxWarn = Integer.parseInt((String) maxWarnObj); } catch (Exception ignored) {}
+                                            // Max warnings
+                                            Object warnObj = quizSnapshot.child("numberOfWarnings").getValue();
+                                            if (warnObj instanceof Long) maxWarn = ((Long) warnObj).intValue();
+                                            else if (warnObj instanceof String) {
+                                                try { maxWarn = Integer.parseInt((String) warnObj); } catch (Exception ignored) {}
                                             }
 
                                             WARNING_DELAY_MS = graceMs;
                                             remainingWarnings = maxWarn;
                                             warningCounterText.setText("Warnings left: " + remainingWarnings);
 
-                                            // Start camera and show calibration
+                                            // Start camera & calibration
                                             calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
                                             if (hasCameraPermission()) startCamera();
                                             else requestCameraPermission();
