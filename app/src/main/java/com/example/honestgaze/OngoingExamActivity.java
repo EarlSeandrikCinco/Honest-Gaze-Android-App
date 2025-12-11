@@ -208,16 +208,34 @@ public class OngoingExamActivity extends AppCompatActivity {
     }
 
     private void listenForRoomEnd() {
-        roomStatusRef.addValueEventListener(new ValueEventListener() {
+        if (roomRef == null) return;
+
+        // Listen to room "status" instead of "active"
+        roomRef.getParent().child("status").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean active = snapshot.getValue(Boolean.class);
-                if (active != null && !active) finish();
+                String status = snapshot.getValue(String.class);
+                if (status != null && status.equals("ended")) {
+                    // Remove student from room
+                    if (studentId != null) roomRef.child(studentId).removeValue();
+
+                    // Exit activity and navigate to Menu
+                    Toast.makeText(OngoingExamActivity.this, "Session ended by professor", Toast.LENGTH_LONG).show();
+
+                    Intent intent = new Intent(OngoingExamActivity.this, StudentMenuActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
+
+                    finish();
+                }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
+
+
 
     private void playWarningBeep() {
         soundPool.play(warningBeepSoundId, 1f, 1f, 1, 0, 1f);
@@ -400,15 +418,14 @@ public class OngoingExamActivity extends AppCompatActivity {
             }
         }
 
-        // 3. Remove ONLY the student's presence (keeps history safe)
+        // 3. Mark student as disconnected (keep history)
         if (roomRef != null && studentId != null) {
-            roomRef.child("students").child(studentId).removeValue();
+            roomRef.child("students").child(studentId).child("status").setValue("disconnected");
         }
 
         // 4. Stop camera + detector
         try {
-            ProcessCameraProvider provider =
-                    ProcessCameraProvider.getInstance(this).get();
+            ProcessCameraProvider provider = ProcessCameraProvider.getInstance(this).get();
             provider.unbindAll();
         } catch (Exception ignored) {}
 
@@ -421,6 +438,7 @@ public class OngoingExamActivity extends AppCompatActivity {
 
         finish();
     }
+
 
 
 
