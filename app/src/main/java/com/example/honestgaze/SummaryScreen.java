@@ -176,8 +176,8 @@ public class SummaryScreen extends AppCompatActivity {
                     if (warningsLeft < 0) warningsLeft = 0;
 
                     DataSnapshot eventsSnap = studentSnap.child("events");
+                    int currentWarningsLeft = maxWarnings; // start from max, not from max - totalWarnings
                     if (eventsSnap.exists()) {
-                        int currentWarningsLeft = warningsLeft;
                         for (DataSnapshot eventSnap : eventsSnap.getChildren()) {
                             String event = eventSnap.getValue(String.class);
                             if (event == null) event = "Unknown event";
@@ -189,13 +189,15 @@ public class SummaryScreen extends AppCompatActivity {
                                     .append(currentWarningsLeft).append(",")
                                     .append(event.replace(",", " ")).append("\n");
 
-                            if (currentWarningsLeft > 0) currentWarningsLeft--;
+                            currentWarningsLeft--;
+                            if (currentWarningsLeft < 0) currentWarningsLeft = 0;
                         }
                     } else {
-                        summary.append(name).append(" ").append(warningsLeft)
+                        summary.append(name).append(" ").append(currentWarningsLeft)
                                 .append(" No events\n");
-                        csvData.append(name).append(",").append(warningsLeft).append(",No events\n");
+                        csvData.append(name).append(",").append(currentWarningsLeft).append(",No events\n");
                     }
+
 
                     summary.append("\n");
                 }
