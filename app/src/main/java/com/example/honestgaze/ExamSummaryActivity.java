@@ -1,5 +1,7 @@
 package com.example.honestgaze;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -21,6 +23,7 @@ public class ExamSummaryActivity extends AppCompatActivity {
     private LinearLayout studentSummaryContainer;
     private ImageButton backButton;
     private String roomId;
+    private String persistentStudentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +40,10 @@ public class ExamSummaryActivity extends AppCompatActivity {
             return;
         }
 
+        // Get persistent student ID
+        SharedPreferences prefs = getSharedPreferences("StudentPrefs", Context.MODE_PRIVATE);
+        persistentStudentId = prefs.getString("studentId", null);
+
         roomRef = FirebaseDatabase.getInstance(
                 "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
         ).getReference("rooms").child(roomId);
@@ -52,16 +59,60 @@ public class ExamSummaryActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 studentSummaryContainer.removeAllViews();
 
+                // Find the current student's record
+                boolean foundStudent = false;
                 for (DataSnapshot studentSnap : snapshot.getChildren()) {
+                    String studentId = studentSnap.getKey();
+                    
+                    // Try to match by checking if this student's name matches or if we can identify them
+                    // Since we don't have a direct mapping, we'll show all students but highlight the current one
+                    // For now, let's show the student's own stats if we can find them
+                    
                     String studentName = studentSnap.child("name").getValue(String.class);
-                    Long totalWarnings = studentSnap.child("totalWarnings").getValue(Long.class);
+                    Object totalWarningsObj = studentSnap.child("totalWarnings").getValue();
+                    int totalWarnings = 0;
+                    
+                    if (totalWarningsObj instanceof Long) {
+                        totalWarnings = ((Long) totalWarningsObj).intValue();
+                    } else if (totalWarningsObj instanceof Integer) {
+                        totalWarnings = (Integer) totalWarningsObj;
+                    }
+                    
+                    // Count events
+                    int eventCount = 0;
+                    DataSnapshot eventsSnap = studentSnap.child("events");
+                    if (eventsSnap.exists()) {
+                        eventCount = (int) eventsSnap.getChildrenCount();
+                    }
 
+                    // Create summary card for this student
                     TextView studentText = new TextView(ExamSummaryActivity.this);
-                    studentText.setText(studentName + " - Warnings: " + (totalWarnings != null ? totalWarnings : 0));
+                    String summaryText = "Name: " + (studentName != null ? studentName : "Unknown") + "\n" +
+                            "Total Warnings: " + totalWarnings + "\n" +
+                            "Warning Events: " + eventCount;
+                    
+                    studentText.setText(summaryText);
                     studentText.setTextSize(18);
-                    studentText.setPadding(10, 10, 10, 10);
+                    studentText.setPadding(20, 20, 20, 20);
+                    studentText.setBackgroundColor(0xFFE8E8E8);
+                    
+                    LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    );
+                    params.setMargins(0, 10, 0, 10);
+                    studentText.setLayoutParams(params);
 
                     studentSummaryContainer.addView(studentText);
+                    foundStudent = true;
+                }
+                
+                if (!foundStudent) {
+                    TextView noDataText = new TextView(ExamSummaryActivity.this);
+                    noDataText.setText("No student data found for this exam.");
+                    noDataText.setTextSize(16);
+                    noDataText.setPadding(20, 20, 20, 20);
+                    studentSummaryContainer.addView(noDataText);
                 }
             }
 

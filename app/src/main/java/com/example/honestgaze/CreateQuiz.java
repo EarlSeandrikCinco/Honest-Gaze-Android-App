@@ -93,6 +93,9 @@ public class CreateQuiz extends AppCompatActivity {
     private void saveQuizToFirebase(String quizName, String grace, String maxWarnings) {
         String dateTime = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
                 .format(new Date());
+        String date = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                .format(new Date());
+        long startTime = System.currentTimeMillis();
 
         Map<String, Object> quizData = new HashMap<>();
         quizData.put("quizName", quizName);
@@ -100,7 +103,10 @@ public class CreateQuiz extends AppCompatActivity {
         quizData.put("numberOfWarnings", Integer.parseInt(maxWarnings));
         quizData.put("roomId", roomId);
         quizData.put("dateTime", dateTime); // ensure date/time is always present
-        quizData.put("timestamp", System.currentTimeMillis());
+        quizData.put("timestamp", startTime);
+        quizData.put("isActive", true);
+        quizData.put("startTime", startTime);
+        quizData.put("date", date);
 
         quizzesRef.child(quizKey).setValue(quizData)
                 .addOnSuccessListener(aVoid -> {

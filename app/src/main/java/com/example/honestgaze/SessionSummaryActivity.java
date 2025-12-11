@@ -10,14 +10,27 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class SessionSummaryActivity extends AppCompatActivity {
 
     private Button btnExportCsv;
     private TextView tvStudentTable;
+    private String roomId;
+    private String quizKey;
+    private StringBuilder csvData = new StringBuilder();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,22 +40,91 @@ public class SessionSummaryActivity extends AppCompatActivity {
         btnExportCsv = findViewById(R.id.btnExportCsv);
         tvStudentTable = findViewById(R.id.tvStudentTable);
 
-        // Placeholder table for students
-        String placeholderTable = "Name      Warnings  Status  Avg Off  Max Off  Disconnections  Session Time\n" +
-                "Student A    2       Focused   12       20       0              21:31-22:29\n" +
-                "Student B    1       Warned    5        10       1              21:31-22:29";
-        tvStudentTable.setText(placeholderTable);
+        roomId = getIntent().getStringExtra("ROOM_ID");
+        quizKey = getIntent().getStringExtra("QUIZ_KEY");
+
+        if (roomId == null || roomId.isEmpty()) {
+            Toast.makeText(this, "Invalid room ID", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         btnExportCsv.setOnClickListener(v -> exportCsv());
+
+        loadSessionSummary();
+    }
+
+    private void loadSessionSummary() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance(
+                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/");
+        
+        DatabaseReference roomRef = database.getReference("rooms").child(roomId);
+        
+        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    tvStudentTable.setText("No session data found.");
+                    return;
+                }
+
+                StringBuilder summaryText = new StringBuilder();
+                csvData.setLength(0);
+                csvData.append("Name,Warnings,Event Count\n");
+
+                DataSnapshot studentsSnap = snapshot.child("students");
+                if (studentsSnap.exists()) {
+                    summaryText.append("Name\t\tWarnings\tEvents\n");
+                    summaryText.append("----------------------------------------\n");
+
+                    for (DataSnapshot studentSnap : studentsSnap.getChildren()) {
+                        String studentName = studentSnap.child("name").getValue(String.class);
+                        if (studentName == null) studentName = "Unknown";
+
+                        Object totalWarningsObj = studentSnap.child("totalWarnings").getValue();
+                        int totalWarnings = 0;
+                        if (totalWarningsObj instanceof Long) {
+                            totalWarnings = ((Long) totalWarningsObj).intValue();
+                        } else if (totalWarningsObj instanceof Integer) {
+                            totalWarnings = (Integer) totalWarningsObj;
+                        }
+
+                        int eventCount = 0;
+                        DataSnapshot eventsSnap = studentSnap.child("events");
+                        if (eventsSnap.exists()) {
+                            eventCount = (int) eventsSnap.getChildrenCount();
+                        }
+
+                        summaryText.append(studentName).append("\t\t")
+                                .append(totalWarnings).append("\t\t")
+                                .append(eventCount).append("\n");
+
+                        csvData.append(studentName).append(",")
+                                .append(totalWarnings).append(",")
+                                .append(eventCount).append("\n");
+                    }
+                } else {
+                    summaryText.append("No students found in this session.");
+                }
+
+                tvStudentTable.setText(summaryText.toString());
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SessionSummaryActivity.this, "Failed to load summary", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void exportCsv() {
-        String header = "name,warnings,status,avg_off,max_off,disconnections,session_time\n";
-        String row1 = "Student A,2,Focused,12,20,0,21:31-22:29\n";
-        String row2 = "Student B,1,Warned,5,10,1,21:31-22:29\n";
-        String fullCsv = header + row1 + row2;
-
-        String fileName = "session_data.csv";
+        String fileName = "session_summary_" + (roomId != null ? roomId : "unknown") + ".csv";
+        String fullCsv = csvData.toString();
+        
+        if (fullCsv.isEmpty() || fullCsv.equals("Name,Warnings,Event Count\n")) {
+            Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         try {
             OutputStream fos;

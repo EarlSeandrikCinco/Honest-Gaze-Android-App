@@ -33,7 +33,8 @@ public class ProfessorRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_professor_room);
 
         roomId = getIntent().getStringExtra("ROOM_ID");
-        roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomId);
+        roomRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/")
+                .getReference("rooms").child(roomId);
 
         roomTitle = findViewById(R.id.roomTitle);
         btnEndSession = findViewById(R.id.btnEndSession);
@@ -76,22 +77,48 @@ public class ProfessorRoomActivity extends AppCompatActivity {
             // Disable button immediately to prevent double clicks
             btnEndSession.setEnabled(false);
 
-            // Mark room as ended and inactive
-            roomRef.child("status").setValue("ended");
-            roomRef.child("active").setValue(false)
-                    .addOnSuccessListener(unused -> {
-                        Toast.makeText(this, "Session ended successfully", Toast.LENGTH_SHORT).show();
+            FirebaseDatabase database = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/");
+            
+            // First, get the quizKey from the room
+            roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String quizKey = snapshot.child("quizKey").getValue(String.class);
+                    long endTime = System.currentTimeMillis();
+                    
+                    // Mark room as ended and inactive
+                    roomRef.child("status").setValue("ended");
+                    roomRef.child("active").setValue(false)
+                            .addOnSuccessListener(unused -> {
+                                // Update quiz node: set isActive=false and endTime
+                                if (quizKey != null) {
+                                    database.getReference("quizzes").child(quizKey).child("isActive").setValue(false);
+                                    database.getReference("quizzes").child(quizKey).child("endTime").setValue(endTime);
+                                }
+                                
+                                Toast.makeText(ProfessorRoomActivity.this, "Session ended successfully", Toast.LENGTH_SHORT).show();
 
-                        // Optionally clear students list in room (forces disconnect)
-                        roomRef.child("students").removeValue();
+                                // Optionally clear students list in room (forces disconnect)
+                                roomRef.child("students").removeValue();
 
-                        // Close professor activity after ending
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to end session: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        btnEndSession.setEnabled(true); // Re-enable if failed
-                    });
+                                // Close professor activity after ending
+                                finish();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(ProfessorRoomActivity.this, "Failed to end session: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                btnEndSession.setEnabled(true); // Re-enable if failed
+                            });
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    // Still try to end the room session even if quiz update fails
+                    roomRef.child("status").setValue("ended");
+                    roomRef.child("active").setValue(false);
+                    Toast.makeText(ProfessorRoomActivity.this, "Session ended", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
+            });
         });
     }
 
