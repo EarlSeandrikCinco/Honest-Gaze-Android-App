@@ -31,9 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class SummaryScreen extends AppCompatActivity {
 
@@ -42,9 +40,7 @@ public class SummaryScreen extends AppCompatActivity {
     private ImageButton backButton;
     private EditText searchInput;
 
-    private Map<String, Quiz> allQuizzesMap = new HashMap<>(); // Map quizKey to Quiz object
-    private Map<String, LinearLayout> quizCardMap = new HashMap<>(); // Map quizKey to card view
-    private Map<String, ValueEventListener> listenerMap = new HashMap<>(); // Map quizKey to listener
+    private List<Quiz> allQuizzes = new ArrayList<>(); // store all quizzes for filtering
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,36 +73,18 @@ public class SummaryScreen extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Remove all listeners when activity is destroyed
-        for (Map.Entry<String, ValueEventListener> entry : listenerMap.entrySet()) {
-            database.child(entry.getKey()).child("isActive").removeEventListener(entry.getValue());
-        }
-        listenerMap.clear();
-    }
-
     private void loadQuizzes() {
         database.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // Remove old listeners
-                for (Map.Entry<String, ValueEventListener> entry : listenerMap.entrySet()) {
-                    database.child(entry.getKey()).child("isActive").removeEventListener(entry.getValue());
-                }
-                listenerMap.clear();
-                quizCardMap.clear();
-                allQuizzesMap.clear();
-                
+                allQuizzes.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Quiz quiz = data.getValue(Quiz.class);
-                    String quizKey = data.getKey();
-                    if (quiz != null && quizKey != null) {
-                        allQuizzesMap.put(quizKey, quiz);
+                    if (quiz != null) {
+                        allQuizzes.add(quiz);
                     }
                 }
-                displayQuizzes(allQuizzesMap);
+                displayQuizzes(allQuizzes);
             }
 
             @Override
@@ -115,24 +93,19 @@ public class SummaryScreen extends AppCompatActivity {
     }
 
     private void filterQuizzes(String query) {
-        Map<String, Quiz> filtered = new HashMap<>();
-        for (Map.Entry<String, Quiz> entry : allQuizzesMap.entrySet()) {
-            Quiz quiz = entry.getValue();
+        List<Quiz> filtered = new ArrayList<>();
+        for (Quiz quiz : allQuizzes) {
             if (quiz.getQuizName().toLowerCase().contains(query.toLowerCase())) {
-                filtered.put(entry.getKey(), quiz);
+                filtered.add(quiz);
             }
         }
         displayQuizzes(filtered);
     }
 
-    private void displayQuizzes(Map<String, Quiz> quizzesMap) {
+    private void displayQuizzes(List<Quiz> quizzes) {
         quizContainer.removeAllViews();
-        quizCardMap.clear();
 
-        for (Map.Entry<String, Quiz> entry : quizzesMap.entrySet()) {
-            String quizKey = entry.getKey();
-            Quiz quiz = entry.getValue();
-
+        for (Quiz quiz : quizzes) {
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
             card.setPadding(25, 25, 25, 25);
@@ -151,70 +124,15 @@ public class SummaryScreen extends AppCompatActivity {
 
             TextView quizLabel = new TextView(this);
             String dateTimeText = quiz.getDateTime() != null ? quiz.getDateTime() : "No date";
-            String dateText = quiz.getDate() != null ? quiz.getDate() : "";
-            quizLabel.setText(quiz.getQuizName() + "\n" + (dateText.isEmpty() ? dateTimeText : dateText));
+            quizLabel.setText(quiz.getQuizName() + "\n" + dateTimeText);
             quizLabel.setTextSize(18);
             quizLabel.setTextColor(0xFF000000);
             card.addView(quizLabel);
 
-            // Store card reference
-            quizCardMap.put(quizKey, card);
-
-            // Set initial state based on isActive
-            updateCardState(card, quiz.getIsActive(), quiz.getRoomId(), quizKey);
-
-            // Listen for isActive changes in real-time
-            ValueEventListener isActiveListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    Boolean isActive = snapshot.getValue(Boolean.class);
-                    if (isActive == null) isActive = true;
-                    updateCardState(card, isActive, quiz.getRoomId(), quizKey);
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {}
-            };
-            
-            database.child(quizKey).child("isActive").addValueEventListener(isActiveListener);
-            listenerMap.put(quizKey, isActiveListener);
+            // Show summary when clicked
+            card.setOnClickListener(v -> showSummaryDialog(quiz.getRoomId()));
 
             quizContainer.addView(card);
-        }
-    }
-
-    private void updateCardState(LinearLayout card, boolean isActive, String roomId, String quizKey) {
-        if (isActive) {
-            // Session is active - disable button
-            card.setAlpha(0.5f);
-            card.setEnabled(false);
-            card.setClickable(false);
-            
-            // Update text to show status
-            TextView quizLabel = (TextView) card.getChildAt(0);
-            String currentText = quizLabel.getText().toString();
-            if (!currentText.contains("(Active)")) {
-                quizLabel.setText(currentText + "\n(Active - Summary unavailable)");
-            }
-        } else {
-            // Session ended - enable button
-            card.setAlpha(1.0f);
-            card.setEnabled(true);
-            card.setClickable(true);
-            
-            // Update text
-            TextView quizLabel = (TextView) card.getChildAt(0);
-            String currentText = quizLabel.getText().toString();
-            currentText = currentText.replace("\n(Active - Summary unavailable)", "");
-            quizLabel.setText(currentText);
-            
-            // Set click listener to navigate to SessionSummaryActivity
-            card.setOnClickListener(v -> {
-                android.content.Intent intent = new android.content.Intent(SummaryScreen.this, SessionSummaryActivity.class);
-                intent.putExtra("QUIZ_KEY", quizKey);
-                intent.putExtra("ROOM_ID", roomId);
-                startActivity(intent);
-            });
         }
     }
 
