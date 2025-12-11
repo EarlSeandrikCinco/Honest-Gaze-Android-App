@@ -172,6 +172,7 @@ public class SummaryScreen extends AppCompatActivity {
 
                 // Now fetch students and events
                 int finalMaxWarnings = maxWarnings;
+                int finalMaxWarnings1 = maxWarnings;
                 roomRef.child("students").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -200,7 +201,7 @@ public class SummaryScreen extends AppCompatActivity {
                                 try { totalWarnings = Integer.parseInt((String) totalObj); } catch (NumberFormatException ignored) {}
                             }
 
-                            int warningsLeft = finalMaxWarnings - totalWarnings;
+                            int warningsLeft = finalMaxWarnings1 - totalWarnings;
                             if (warningsLeft < 0) warningsLeft = 0;
 
                             summary.append(name != null ? name : "Unknown")
@@ -209,11 +210,18 @@ public class SummaryScreen extends AppCompatActivity {
                             DataSnapshot eventsSnap = studentSnap.child("events");
                             if (eventsSnap.exists()) {
                                 summary.append("Events:\n");
+
+                                int currentWarningsLeft = warningsLeft; // copy for decrementing per event
                                 for (DataSnapshot event : eventsSnap.getChildren()) {
                                     String eventStr = event.getValue(String.class);
                                     summary.append("  • ").append(eventStr).append("\n");
-                                    csvData.append(name).append(",").append(warningsLeft).append(",")
+
+                                    csvData.append(name).append(",")
+                                            .append(currentWarningsLeft).append(",")
                                             .append(eventStr.replace(",", " ")).append("\n");
+
+                                    // Decrement for next event
+                                    if (currentWarningsLeft > 0) currentWarningsLeft--;
                                 }
                             } else {
                                 csvData.append(name).append(",").append(warningsLeft).append(",No events\n");
@@ -221,6 +229,7 @@ public class SummaryScreen extends AppCompatActivity {
 
                             summary.append("\n");
                         }
+
 
                         TextView summaryView = new TextView(SummaryScreen.this);
                         summaryView.setText(summary.toString());
