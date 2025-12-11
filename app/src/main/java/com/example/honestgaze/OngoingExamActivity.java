@@ -210,17 +210,23 @@ public class OngoingExamActivity extends AppCompatActivity {
     private void listenForRoomEnd() {
         if (roomRef == null) return;
 
-        // Listen to room "status" instead of "active"
-        roomRef.getParent().child("status").addValueEventListener(new ValueEventListener() {
+        // Listen to rooms/<roomId>/status
+        roomRef.child("status").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String status = snapshot.getValue(String.class);
-                if (status != null && status.equals("ended")) {
-                    // Remove student from room
-                    if (studentId != null) roomRef.child(studentId).removeValue();
 
-                    // Exit activity and navigate to Menu
-                    Toast.makeText(OngoingExamActivity.this, "Session ended by professor", Toast.LENGTH_LONG).show();
+                if ("ended".equals(status)) {
+
+                    // Mark student as disconnected (keep history)
+                    if (studentId != null) {
+                        roomRef.child("students").child(studentId)
+                                .child("status").setValue("disconnected");
+                    }
+
+                    Toast.makeText(OngoingExamActivity.this,
+                            "Session ended by professor",
+                            Toast.LENGTH_LONG).show();
 
                     Intent intent = new Intent(OngoingExamActivity.this, StudentMenuActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -234,6 +240,7 @@ public class OngoingExamActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
+
 
 
 
