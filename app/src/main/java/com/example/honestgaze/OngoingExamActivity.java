@@ -70,7 +70,7 @@ public class OngoingExamActivity extends AppCompatActivity {
     private float calibratedCenterX = 0;
     private float calibratedCenterY = 0;
 
-    private int remainingWarnings = 3;
+    private int remainingWarnings;
     private boolean isLookingAway = false;
     private long gazeAwayStartTime = 0;
     private static long WARNING_DELAY_MS = 2500;
@@ -117,6 +117,7 @@ public class OngoingExamActivity extends AppCompatActivity {
         roomStatusRef = roomRef.child("active");
         listenForRoomEnd();
 
+        // Delay camera start and calibration until maxWarnings is fetched
         roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -131,16 +132,26 @@ public class OngoingExamActivity extends AppCompatActivity {
                                     public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
                                         if (quizSnapshot.exists()) {
                                             long graceMs = 2500;
-                                            int maxWarn = 3;
+                                            int maxWarn = 3; // fallback
+
                                             try {
-                                                graceMs = Long.parseLong(quizSnapshot.child("gracePeriod").getValue(String.class));
+                                                graceMs = Long.parseLong(
+                                                        quizSnapshot.child("gracePeriod").getValue(String.class));
                                             } catch (Exception ignored) {}
+
                                             try {
-                                                maxWarn = Integer.parseInt(quizSnapshot.child("maxWarnings").getValue(String.class));
+                                                maxWarn = Integer.parseInt(
+                                                        quizSnapshot.child("maxWarnings").getValue(String.class));
                                             } catch (Exception ignored) {}
+
                                             WARNING_DELAY_MS = graceMs;
                                             remainingWarnings = maxWarn;
                                             warningCounterText.setText("Warnings left: " + remainingWarnings);
+
+                                            // Now start camera and show calibration overlay
+                                            calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
+                                            if (hasCameraPermission()) startCamera();
+                                            else requestCameraPermission();
                                         }
                                     }
 
@@ -180,10 +191,10 @@ public class OngoingExamActivity extends AppCompatActivity {
             finish();
         });
 
-        calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
-
-        if (hasCameraPermission()) startCamera();
-        else requestCameraPermission();
+        // REMOVE the previous lines:
+        // calibrationOverlay.setVisibility(LinearLayout.VISIBLE);
+        // if (hasCameraPermission()) startCamera();
+        // else requestCameraPermission();
     }
 
     private void setupSoundPool() {
