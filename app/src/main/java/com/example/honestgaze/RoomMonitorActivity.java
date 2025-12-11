@@ -28,7 +28,6 @@ public class RoomMonitorActivity extends AppCompatActivity {
 
     private String roomId;
     private DatabaseReference roomRef;
-    private DatabaseReference roomRootRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +48,8 @@ public class RoomMonitorActivity extends AppCompatActivity {
 
         roomLabel.setText("Room ID: " + roomId);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/");
-        roomRootRef = database.getReference("rooms").child(roomId);
-        roomRef = roomRootRef.child("students");
+        roomRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
+                .getReference("rooms").child(roomId).child("students");
 
         // Live updates
         roomRef.addValueEventListener(new ValueEventListener() {
@@ -80,35 +78,11 @@ public class RoomMonitorActivity extends AppCompatActivity {
     }
 
     private void endSession() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/");
-        
-        // First, get the quizKey from the room
-        roomRootRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String quizKey = snapshot.child("quizKey").getValue(String.class);
-                long endTime = System.currentTimeMillis();
-                
-                // Update room status
-                roomRootRef.child("status").setValue("ended");
-                roomRootRef.child("active").setValue(false);
-                
-                // Update quiz node: set isActive=false and endTime
-                if (quizKey != null) {
-                    database.getReference("quizzes").child(quizKey).child("isActive").setValue(false);
-                    database.getReference("quizzes").child(quizKey).child("endTime").setValue(endTime);
-                }
-                
-                finish();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Still try to end the room session even if quiz update fails
-                roomRootRef.child("status").setValue("ended");
-                roomRootRef.child("active").setValue(false);
-                finish();
-            }
-        });
+        FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
+                .getReference("rooms")
+                .child(roomId)
+                .child("status")
+                .setValue("ended");
+        finish();
     }
 }

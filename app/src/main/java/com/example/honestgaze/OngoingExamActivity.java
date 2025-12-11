@@ -385,28 +385,36 @@ public class OngoingExamActivity extends AppCompatActivity {
 
     private void disconnectFromRoom() {
 
-        // 1. Stop heartbeat
+        // 1. Stop heartbeat loop
         if (heartbeatHandler != null && heartbeatRunnable != null) {
             heartbeatHandler.removeCallbacks(heartbeatRunnable);
         }
 
-        // 2. Remove student from Firebase
+        // 2. Ensure roomRef is initialized
+        if (roomRef == null) {
+            String roomId = getIntent().getStringExtra("ROOM_ID");
+            if (roomId != null) {
+                roomRef = FirebaseDatabase.getInstance(
+                        "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
+                ).getReference("rooms").child(roomId);
+            }
+        }
+
+        // 3. Remove ONLY the student's presence (keeps history safe)
         if (roomRef != null && studentId != null) {
             roomRef.child("students").child(studentId).removeValue();
         }
 
-        // 3. Stop camera + ML Kit
+        // 4. Stop camera + detector
         try {
             ProcessCameraProvider provider =
                     ProcessCameraProvider.getInstance(this).get();
             provider.unbindAll();
         } catch (Exception ignored) {}
 
-        if (faceDetector != null) {
-            faceDetector.close();
-        }
+        if (faceDetector != null) faceDetector.close();
 
-        // 4. Return to student menu
+        // 5. Navigate back to menu
         Intent intent = new Intent(OngoingExamActivity.this, StudentMenuActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
@@ -416,23 +424,34 @@ public class OngoingExamActivity extends AppCompatActivity {
 
 
 
+
     private void issueWarning(String direction){
         playWarningBeep();
         showPopupWarning(direction);
+
         remainingWarnings--;
-        warningCounterText.setText("Warnings left: "+remainingWarnings);
-        if(roomRef!=null){
-            long timestamp=System.currentTimeMillis();
-            roomRef.child("students").child(studentId).child("events").child(String.valueOf(timestamp)).setValue(direction);
-            roomRef.child("students").child(studentId).child("totalWarnings").setValue(ServerValue.increment(1));
+        warningCounterText.setText("Warnings left: " + remainingWarnings);
+
+        if (roomRef != null) {
+            long timestamp = System.currentTimeMillis();
+
+            // Log event (keeps history intact)
+            roomRef.child("students").child(studentId)
+                    .child("events").child(String.valueOf(timestamp)).setValue(direction);
+
+            // Increment warning counter (safe)
+            roomRef.child("students").child(studentId)
+                    .child("totalWarnings").setValue(ServerValue.increment(1));
         }
-        if(remainingWarnings<=0){
-            Toast.makeText(this,"Exam ended due to too many warnings.",Toast.LENGTH_LONG).show();
-            if(roomRef!=null) roomRef.child("status").setValue("ended");
-            Intent intent=new Intent(this,StudentMenuActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            startActivity(intent);
-            finish();
+
+        // If student reached max warnings → disconnect ONLY them
+        if (remainingWarnings <= 0) {
+            Toast.makeText(this, "You have been disconnected due to too many warnings.",
+                    Toast.LENGTH_LONG).show();
+
+            // CLEAN AUTO-DISCONNECT
+            disconnectFromRoom();
         }
     }
+
 }
