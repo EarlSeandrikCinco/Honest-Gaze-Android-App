@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.TypedValue;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -35,6 +36,10 @@ public class HistoryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+
+        // Initialize back button
+        ImageButton btnBackHistory = findViewById(R.id.btnBackHistory);
+        btnBackHistory.setOnClickListener(v -> finish());
 
         // Get persistent student ID
         SharedPreferences prefs = getSharedPreferences("StudentPrefs", Context.MODE_PRIVATE);

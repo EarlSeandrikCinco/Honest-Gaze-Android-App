@@ -93,4 +93,19 @@
 
     </ScrollView>
 
+    <!-- Back Button (High Z-index) -->
+    <ImageButton
+        android:id="@+id/btnBackSummary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_revert"
+        android:background="@android:color/transparent"
+        android:contentDescription="Back"
+        android:layout_marginTop="45dp"
+        android:elevation="20dp"
+        android:tint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="8dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

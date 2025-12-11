@@ -22,13 +22,26 @@
         android:elevation="4dp"
         android:contentDescription="Profile Options" />
 
+    <!-- App Logo -->
+    <ImageView
+        android:id="@+id/imgLogo"
+        android:layout_width="150dp"
+        android:layout_height="120dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="30dp"
+        android:src="@drawable/honestgazelogo"
+        android:scaleType="fitCenter"
+        android:contentDescription="Honest Gaze Logo" />
+
     <!-- Hello Proctor Title -->
     <TextView
         android:id="@+id/tvProctorTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/spacing_hero_title"
+        android:layout_below="@id/imgLogo"
+        android:layout_marginTop="@dimen/spacing_lg"
         android:text="Hello\nProctor!"
         android:textSize="40sp"
         android:textStyle="bold"

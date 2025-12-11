@@ -38,6 +38,7 @@ public class SummaryScreen extends AppCompatActivity {
     private DatabaseReference database;
     private LinearLayout quizContainer;
     private ImageButton backButton;
+    private ImageButton btnBackSummary;
     private EditText searchInput;
 
     private List<Quiz> allQuizzes = new ArrayList<>(); // store all quizzes for filtering
@@ -53,9 +54,11 @@ public class SummaryScreen extends AppCompatActivity {
 
         quizContainer = findViewById(R.id.buttonContainer);
         backButton = findViewById(R.id.backButton);
+        btnBackSummary = findViewById(R.id.btnBackSummary);
         searchInput = findViewById(R.id.searchInput);
 
         backButton.setOnClickListener(v -> finish());
+        btnBackSummary.setOnClickListener(v -> finish());
 
         loadQuizzes();
 

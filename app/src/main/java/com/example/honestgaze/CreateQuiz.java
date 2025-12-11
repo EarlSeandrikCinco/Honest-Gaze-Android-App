@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.database.DatabaseReference;
@@ -27,7 +28,7 @@ public class CreateQuiz extends AppCompatActivity {
 
     private EditText quizNameInput, graceInput, maxWarningsInput;
     private Button btnCreate, btnCopyLink, btnEnterRoom;
-    private ImageButton backButton;
+    private ImageButton btnBackCreate, btnMore2, btnMore4;
 
     private DatabaseReference quizzesRef;
     private DatabaseReference roomsRef;
@@ -47,7 +48,7 @@ public class CreateQuiz extends AppCompatActivity {
                 "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
         ).getReference("rooms");
 
-        backButton = findViewById(R.id.backButton);
+        btnBackCreate = findViewById(R.id.btnBackCreate);
         quizNameInput = findViewById(R.id.inputField);
         graceInput = findViewById(R.id.inputField2);
         maxWarningsInput = findViewById(R.id.inputField4);
@@ -55,14 +56,20 @@ public class CreateQuiz extends AppCompatActivity {
         btnCreate = findViewById(R.id.button2);
         btnCopyLink = findViewById(R.id.btnCopyLink);
         btnEnterRoom = findViewById(R.id.btnEnterRoom);
+        btnMore2 = findViewById(R.id.btnMore2);
+        btnMore4 = findViewById(R.id.btnMore4);
 
         btnCopyLink.setVisibility(View.GONE);
         btnEnterRoom.setVisibility(View.GONE);
 
-        backButton.setOnClickListener(v -> finish());
+        btnBackCreate.setOnClickListener(v -> finish());
         btnCreate.setOnClickListener(v -> createQuiz());
         btnCopyLink.setOnClickListener(v -> copyRoomLink());
         btnEnterRoom.setOnClickListener(v -> enterRoom());
+        
+        // Three Dots Helper Dialogs
+        btnMore2.setOnClickListener(v -> showGracePeriodDialog());
+        btnMore4.setOnClickListener(v -> showWarningLimitDialog());
     }
 
     private void createQuiz() {
@@ -156,4 +163,21 @@ public class CreateQuiz extends AppCompatActivity {
     private String generateRoomId() {
         return UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
+
+    private void showGracePeriodDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Grace Period")
+                .setMessage("Enter allowable grace period (e.g., 5 minutes). This is the time allowed before a student is marked late.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void showWarningLimitDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Warning Limit")
+                .setMessage("Enter maximum number of warnings (e.g., 3 warnings). If the student exceeds this, the exam may auto-submit or notify the proctor.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
 }
+
