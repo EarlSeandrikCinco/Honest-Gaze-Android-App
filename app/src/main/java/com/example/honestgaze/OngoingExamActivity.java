@@ -61,6 +61,7 @@ public class OngoingExamActivity extends AppCompatActivity {
     private Button btnStartCalibration, btnCancelCalibration;
     private TextView calibrationMessage;
     private TextView popupWarning;
+    private Button btnDisconnect;
 
     private FaceDetector faceDetector;
 
@@ -98,7 +99,7 @@ public class OngoingExamActivity extends AppCompatActivity {
             finish();
             return;
         }
-
+        btnDisconnect.setOnClickListener(v -> disconnectFromRoom());
         roomRef = FirebaseDatabase.getInstance(
                 "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
         ).getReference("rooms").child(roomId);
@@ -242,6 +243,7 @@ public class OngoingExamActivity extends AppCompatActivity {
     }
 
     private void bindViews() {
+        btnDisconnect = findViewById(R.id.btnDisconnect);
         previewView = findViewById(R.id.previewView);
         txtDebug = findViewById(R.id.txtDebug);
         warningCounterText = findViewById(R.id.warningCounterText);
@@ -387,6 +389,38 @@ public class OngoingExamActivity extends AppCompatActivity {
             }
         } else { gazeAwayStartTime=0; isLookingAway=false; }
     }
+
+    private void disconnectFromRoom() {
+
+        // 1. Stop heartbeat
+        if (heartbeatHandler != null && heartbeatRunnable != null) {
+            heartbeatHandler.removeCallbacks(heartbeatRunnable);
+        }
+
+        // 2. Remove student from Firebase
+        if (roomRef != null && studentId != null) {
+            roomRef.child("students").child(studentId).removeValue();
+        }
+
+        // 3. Stop camera + ML Kit
+        try {
+            ProcessCameraProvider provider =
+                    ProcessCameraProvider.getInstance(this).get();
+            provider.unbindAll();
+        } catch (Exception ignored) {}
+
+        if (faceDetector != null) {
+            faceDetector.close();
+        }
+
+        // 4. Return to student menu
+        Intent intent = new Intent(OngoingExamActivity.this, StudentMenuActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+
+        finish();
+    }
+
 
 
     private void createStudentHistoryRecord(String roomId) {
