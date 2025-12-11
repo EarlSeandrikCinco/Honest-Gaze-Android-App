@@ -353,18 +353,23 @@ public class OngoingExamActivity extends AppCompatActivity {
     private void finishCalibration(){ isCalibrating=false; isCalibrated=true; calibratedCenterX/=calibrationSamples; calibratedCenterY/=calibrationSamples; calibrationOverlay.setVisibility(LinearLayout.GONE); Toast.makeText(this,"Calibration complete!",Toast.LENGTH_SHORT).show(); playCalibrationDoneSound(); }
 
     private void detectGaze(float cx,float cy){
-        float dx=cx-calibratedCenterX;
-        float dy=cy-calibratedCenterY;
-        String direction=null;
-        if(dx<-25f) direction="right";
-        else if(dx>25f) direction="left";
-        else if(dy<-55f) direction="up";
-        else if(dy>40f) direction="down";
-        if(direction!=null){
+        float dx = calibratedCenterX - cx; // flip sign for front camera
+        float dy = cy - calibratedCenterY;
+        String direction = null;
+        if(dx < -25f) direction="left";
+        else if(dx > 25f) direction="right";
+        else if(dy < -55f) direction="up";
+        else if(dy > 40f) direction="down";
+
+        if(direction != null){
             if(gazeAwayStartTime==0) gazeAwayStartTime=System.currentTimeMillis();
-            else if(System.currentTimeMillis()-gazeAwayStartTime>=WARNING_DELAY_MS && !isLookingAway){ issueWarning("looked "+direction+" for too long"); isLookingAway=true; }
+            else if(System.currentTimeMillis()-gazeAwayStartTime>=WARNING_DELAY_MS && !isLookingAway){
+                issueWarning("looked "+direction+" for too long");
+                isLookingAway=true;
+            }
         } else { gazeAwayStartTime=0; isLookingAway=false; }
     }
+
 
     private void issueWarning(String direction){
         playWarningBeep();
