@@ -2,9 +2,7 @@ package com.example.honestgaze;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.os.Bundle;
@@ -43,8 +41,6 @@ import com.google.mlkit.vision.face.FaceDetection;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class OngoingExamActivity extends AppCompatActivity {
@@ -111,9 +107,6 @@ public class OngoingExamActivity extends AppCompatActivity {
         roomRef.child("students").child(studentId).child("name").setValue(studentName);
         roomRef.child("students").child(studentId).child("totalWarnings").setValue(0);
         roomRef.child("status").setValue("active");
-
-        // Create studentHistory record
-        createStudentHistoryRecord(roomId);
 
         roomStatusRef = roomRef.child("active");
         listenForRoomEnd();
@@ -422,63 +415,6 @@ public class OngoingExamActivity extends AppCompatActivity {
     }
 
 
-
-    private void createStudentHistoryRecord(String roomId) {
-        // Get or create a persistent student identifier
-        SharedPreferences prefs = getSharedPreferences("StudentPrefs", Context.MODE_PRIVATE);
-        String persistentStudentId = prefs.getString("studentId", null);
-        if (persistentStudentId == null) {
-            persistentStudentId = "student_" + System.currentTimeMillis();
-            prefs.edit().putString("studentId", persistentStudentId).apply();
-        }
-
-        // Create final temporary variable for use in inner class
-        final String finalPersistentStudentId = persistentStudentId;
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance(
-                "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/");
-
-        // Get quizKey from room
-        roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String quizKey = snapshot.child("quizKey").getValue(String.class);
-                if (quizKey != null) {
-                    // Create final temporary variable for use in nested inner class
-                    final String finalQuizKey = quizKey;
-                    
-                    // Get quiz details
-                    database.getReference("quizzes").child(finalQuizKey)
-                            .addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
-                                    Quiz quiz = quizSnapshot.getValue(Quiz.class);
-                                    if (quiz != null) {
-                                        // Create studentHistory record
-                                        DatabaseReference historyRef = database.getReference("studentHistory")
-                                                .child(finalPersistentStudentId).child(finalQuizKey);
-                                        
-                                        Map<String, Object> historyData = new HashMap<>();
-                                        historyData.put("quizName", quiz.getQuizName());
-                                        historyData.put("roomId", roomId);
-                                        historyData.put("date", quiz.getDate() != null ? quiz.getDate() : quiz.getDateTime());
-                                        historyData.put("joinedAt", System.currentTimeMillis());
-                                        historyData.put("quizKey", finalQuizKey);
-                                        
-                                        historyRef.setValue(historyData);
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {}
-                            });
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
 
     private void issueWarning(String direction){
         playWarningBeep();
