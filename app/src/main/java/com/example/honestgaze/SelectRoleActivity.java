@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class SelectRoleActivity extends AppCompatActivity {
 
-    private Button btnStudent, btnProctor;
+    Button btnStudent, btnProctor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

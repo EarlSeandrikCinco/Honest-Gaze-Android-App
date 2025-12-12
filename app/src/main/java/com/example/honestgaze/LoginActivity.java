@@ -110,8 +110,9 @@ public class LoginActivity extends AppCompatActivity {
         }
         tvSignUp.setText(spannable);
         tvSignUp.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            Intent intent = new Intent(LoginActivity.this, SelectRoleActivity.class);
             startActivity(intent);
         });
+
     }
 }

@@ -5,4 +5,9 @@
     <string name="create_quiz">Create Quiz</string>
     <string name="quiz_name">Quiz Name</string>
     <string name="honest_gaze">Honest Gaze</string>
+
+    <string-array name="roles_array">
+        <item>Student</item>
+        <item>Proctor</item>
+    </string-array>
 </resources>
