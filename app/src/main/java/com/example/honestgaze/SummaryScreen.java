@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SummaryScreen extends AppCompatActivity {
@@ -82,6 +83,10 @@ public class SummaryScreen extends AppCompatActivity {
                     Quiz quiz = data.getValue(Quiz.class);
                     if (quiz != null) allQuizzes.add(quiz);
                 }
+
+                // **THE FIX — reverse so newest appears first**
+                Collections.reverse(allQuizzes);
+
                 displayQuizzes(allQuizzes);
             }
 
@@ -96,6 +101,10 @@ public class SummaryScreen extends AppCompatActivity {
                 filtered.add(quiz);
             }
         }
+
+        // keep order consistent
+        Collections.reverse(filtered);
+
         displayQuizzes(filtered);
     }
 
@@ -169,14 +178,12 @@ public class SummaryScreen extends AppCompatActivity {
 
                                 int maxWarnings = 0;
 
-                                // Fetch maxWarnings dynamically
                                 Object maxObj = quizSnapshot.child("maxWarnings").getValue();
                                 if (maxObj instanceof Long) maxWarnings = ((Long) maxObj).intValue();
                                 else if (maxObj instanceof String) {
                                     try { maxWarnings = Integer.parseInt((String) maxObj); } catch (Exception ignored) {}
                                 }
 
-                                // fallback to numberOfWarnings if maxWarnings missing
                                 if (maxWarnings == 0) {
                                     Object oldObj = quizSnapshot.child("numberOfWarnings").getValue();
                                     if (oldObj instanceof Long) maxWarnings = ((Long) oldObj).intValue();
@@ -185,7 +192,6 @@ public class SummaryScreen extends AppCompatActivity {
                                     }
                                 }
 
-                                // FORCE a default if nothing exists
                                 if (maxWarnings == 0) maxWarnings = 3;
 
                                 buildSummary(snapshot.child("students"), roomId, maxWarnings);
@@ -229,7 +235,7 @@ public class SummaryScreen extends AppCompatActivity {
                             .append(event.replace(",", " ")).append("\n");
 
                     warningsLeft--;
-                    if (warningsLeft < 1) warningsLeft = 1; // never go below 1
+                    if (warningsLeft < 1) warningsLeft = 1;
                 }
             } else {
                 summary.append(name).append(" | ").append(warningsLeft).append(" | No events\n");
@@ -254,7 +260,6 @@ public class SummaryScreen extends AppCompatActivity {
                         (dialog, which) -> saveCsvToDownloads(roomId, csvData.toString()))
                 .show();
     }
-
 
     private void saveCsvToDownloads(String roomId, String csvContent) {
         String fileName = "exam_summary_" + roomId + ".csv";
