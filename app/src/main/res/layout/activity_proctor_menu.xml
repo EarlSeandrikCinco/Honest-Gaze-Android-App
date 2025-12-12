@@ -6,21 +6,6 @@
     android:background="@color/slate_bg"
     android:padding="@dimen/spacing_xl">
 
-    <!-- Profile Button (Top Right) -->
-    <ImageButton
-        android:id="@+id/btnProfile"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:src="@mipmap/ic_launcher"
-        android:scaleType="centerCrop"
-        android:background="@drawable/card_background"
-        android:padding="4dp"
-        android:elevation="4dp"
-        android:contentDescription="Profile Options" />
 
     <!-- App Logo -->
     <ImageView

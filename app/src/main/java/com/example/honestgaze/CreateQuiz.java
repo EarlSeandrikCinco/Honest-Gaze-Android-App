@@ -74,28 +74,49 @@ public class CreateQuiz extends AppCompatActivity {
 
     private void createQuiz() {
         String quizName = quizNameInput.getText().toString().trim();
-        String grace = graceInput.getText().toString().trim();
-        String maxWarnings = maxWarningsInput.getText().toString().trim();
+        String graceStr = graceInput.getText().toString().trim();
+        String maxWarningsStr = maxWarningsInput.getText().toString().trim();
 
         if (quizName.isEmpty()) {
             Toast.makeText(this, "Enter quiz name", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (grace.isEmpty() || maxWarnings.isEmpty()) {
+        if (graceStr.isEmpty() || maxWarningsStr.isEmpty()) {
             Toast.makeText(this, "Please fill all quiz options", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        int grace, maxWarnings;
+        try {
+            grace = Integer.parseInt(graceStr);
+            maxWarnings = Integer.parseInt(maxWarningsStr);
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Invalid number format", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Validate numeric ranges
+        if (grace <= 0 || grace > 10) { // set your max grace seconds here
+            Toast.makeText(this, "Grace period must be greater than 0 and less than 10", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (maxWarnings <= 0 || maxWarnings > 10) { // set max warnings limit
+            Toast.makeText(this, "Number of warnings must be greater than 0 and less than 10", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Generate room and quiz key only if all valid
         roomId = generateRoomId();
         quizKey = quizzesRef.push().getKey();
-
         if (quizKey == null) {
             Toast.makeText(this, "Error generating quiz", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        saveQuizToFirebase(quizName, grace, maxWarnings);
+        saveQuizToFirebase(quizName, String.valueOf(grace), String.valueOf(maxWarnings));
     }
+
 
     private void saveQuizToFirebase(String quizName, String grace, String maxWarnings) {
         String dateTime = new SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
@@ -167,7 +188,7 @@ public class CreateQuiz extends AppCompatActivity {
     private void showGracePeriodDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Grace Period")
-                .setMessage("Enter allowable grace period (e.g., 30 seconds). This is the time allowed before a student is marked late.")
+                .setMessage("Enter allowable grace period (e.g., 3 seconds). This is the time allowed before a student is warned for gazing.")
                 .setPositiveButton("OK", null)
                 .show();
     }
@@ -175,7 +196,7 @@ public class CreateQuiz extends AppCompatActivity {
     private void showWarningLimitDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Warning Limit")
-                .setMessage("Enter maximum number of warnings (e.g., 3 warnings). If the student exceeds this, the exam may auto-submit or notify the proctor.")
+                .setMessage("Enter maximum number of warnings (e.g., 3 warnings). If the student exceeds this, the student will be disconnected to the room")
                 .setPositiveButton("OK", null)
                 .show();
     }

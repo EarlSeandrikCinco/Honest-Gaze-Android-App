@@ -26,7 +26,6 @@ public class ProctorMenu extends AppCompatActivity {
 
         cardButton1 = findViewById(R.id.cardButton1);
         cardButton2 = findViewById(R.id.cardButton2);
-        btnProfile = findViewById(R.id.btnProfile);
         tvProctorTitle = findViewById(R.id.tvProctorTitle);
         // Removed the line: tvHeader = findViewById(R.id.tvHeader);
         tvFooter = findViewById(R.id.tvFooter);
