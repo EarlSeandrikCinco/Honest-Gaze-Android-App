@@ -4,20 +4,17 @@ public class StudentMonitorModel {
     private String name;
     private int totalWarnings;
     private int eventsCount;
+    private String status; // new field
 
-    public StudentMonitorModel() {}
-
-    public StudentMonitorModel(String name, int totalWarnings, int eventsCount) {
+    public StudentMonitorModel(String name, int totalWarnings, int eventsCount, String status) {
         this.name = name;
         this.totalWarnings = totalWarnings;
         this.eventsCount = eventsCount;
+        this.status = status;
     }
 
     public String getName() { return name; }
     public int getTotalWarnings() { return totalWarnings; }
     public int getEventsCount() { return eventsCount; }
-
-    public void setName(String name) { this.name = name; }
-    public void setTotalWarnings(int totalWarnings) { this.totalWarnings = totalWarnings; }
-    public void setEventsCount(int eventsCount) { this.eventsCount = eventsCount; }
+    public String getStatus() { return status; }
 }

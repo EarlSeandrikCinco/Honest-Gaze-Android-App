@@ -39,6 +39,10 @@ public class StudentMonitorAdapter extends RecyclerView.Adapter<StudentMonitorAd
         return students.size();
     }
 
+    public void setStudents(List<StudentMonitorModel> students) {
+        this.students = students;
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView nameText, warningsText, eventsText;
 

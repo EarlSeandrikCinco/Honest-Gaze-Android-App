@@ -48,15 +48,22 @@ public class RoomMonitorActivity extends AppCompatActivity {
 
         roomLabel.setText("Room ID: " + roomId);
 
-        roomRef = FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
+        roomRef = FirebaseDatabase.getInstance(
+                        "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                 .getReference("rooms").child(roomId).child("students");
 
         // Live updates
         roomRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                studentList.clear();
+                studentList.clear(); // Clear previous list
                 for (DataSnapshot studentSnap : snapshot.getChildren()) {
+                    String status = studentSnap.child("status").getValue(String.class);
+                    if (status == null) status = "active";
+
+                    // Only include active students
+                    if (!status.equals("active")) continue;
+
                     String name = studentSnap.child("name").getValue(String.class);
                     Long totalWarnings = studentSnap.child("totalWarnings").getValue(Long.class);
                     int eventsCount = (int) (studentSnap.child("events").getChildrenCount());
@@ -64,21 +71,24 @@ public class RoomMonitorActivity extends AppCompatActivity {
                     studentList.add(new StudentMonitorModel(
                             name != null ? name : "Unknown",
                             totalWarnings != null ? totalWarnings.intValue() : 0,
-                            eventsCount
+                            eventsCount,
+                            status
                     ));
                 }
-                adapter.notifyDataSetChanged();
+                adapter.notifyDataSetChanged(); // Refresh RecyclerView immediately
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
+
 
         btnEndSession.setOnClickListener(v -> endSession());
     }
 
     private void endSession() {
-        FirebaseDatabase.getInstance("https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
+        FirebaseDatabase.getInstance(
+                        "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app")
                 .getReference("rooms")
                 .child(roomId)
                 .child("status")
