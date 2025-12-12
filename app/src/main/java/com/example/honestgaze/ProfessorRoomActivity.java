@@ -50,18 +50,20 @@ public class ProfessorRoomActivity extends AppCompatActivity {
         roomRef.child("students").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                studentsContainer.removeAllViews();
+                studentsContainer.removeAllViews(); // clear old cards
 
                 for (DataSnapshot studentSnap : snapshot.getChildren()) {
-                    String status = studentSnap.child("status").getValue(String.class);
-                    if ("disconnected".equals(status)) continue; // skip disconnected students
-
                     String name = studentSnap.child("name").getValue(String.class);
                     Long warnings = studentSnap.child("totalWarnings").getValue(Long.class);
                     String lastEvent = studentSnap.child("lastEvent").getValue(String.class);
+                    String status = studentSnap.child("status").getValue(String.class);
 
                     if (warnings == null) warnings = 0L;
                     if (lastEvent == null) lastEvent = "No events";
+                    if (status == null) status = "active";
+
+                    // Only show active students
+                    if (!status.equals("active")) continue;
 
                     TextView tv = new TextView(ProfessorRoomActivity.this);
                     tv.setText(name + "\nWarnings: " + warnings + "\nLast event: " + lastEvent);
@@ -74,6 +76,8 @@ public class ProfessorRoomActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
+
+
 
 
     private void setupEndSessionButton() {
