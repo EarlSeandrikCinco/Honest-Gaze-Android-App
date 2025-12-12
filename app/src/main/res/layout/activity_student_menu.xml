@@ -5,12 +5,25 @@
     android:background="@color/slate_bg"
     android:padding="@dimen/spacing_xl">
 
+    <!-- Logo -->
+    <ImageView
+        android:id="@+id/logoImageView"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="30dp"
+        android:src="@drawable/honestgazelogo"
+        android:scaleType="fitCenter"
+        android:contentDescription="Honest Gaze Logo" />
+
     <!-- Hello Students! Title -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
+        android:layout_below="@id/logoImageView"
         android:layout_marginTop="@dimen/spacing_hero_title"
         android:text="Hello\nStudents!"
         android:textSize="40sp"

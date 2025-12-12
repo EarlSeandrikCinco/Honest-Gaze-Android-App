@@ -10,7 +10,7 @@
     android:padding="@dimen/spacing_xl"
     tools:context=".SummaryScreen">
 
-    <!-- Back Button -->
+    <!-- Back Button (Hidden - using white back button below) -->
     <ImageButton
         android:id="@+id/backButton"
         android:layout_width="50dp"
@@ -18,6 +18,7 @@
         android:background="@android:color/transparent"
         android:src="@drawable/ic_baseline_arrow_back"
         android:contentDescription="Back"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="8dp"

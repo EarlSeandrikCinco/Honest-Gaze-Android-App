@@ -126,6 +126,19 @@ public class SummaryScreen extends AppCompatActivity {
             quizLabel.setTextColor(0xFF000000);
             card.addView(quizLabel);
 
+            TextView warningsLabel = new TextView(this);
+            int totalWarnings = quiz.getNumberOfWarnings();
+            warningsLabel.setText("Total Warnings: " + totalWarnings);
+            warningsLabel.setTextSize(14);
+            warningsLabel.setTextColor(0xFFFF0000);
+            LinearLayout.LayoutParams warningsParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            warningsParams.setMargins(0, 8, 0, 0);
+            warningsLabel.setLayoutParams(warningsParams);
+            card.addView(warningsLabel);
+
             card.setOnClickListener(v -> showSummaryDialog(quiz.getRoomId()));
 
             quizContainer.addView(card);

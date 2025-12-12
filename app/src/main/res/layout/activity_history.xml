@@ -78,20 +78,18 @@
     </ScrollView>
 
     <!-- Back Button - Declared LAST for z-index priority -->
-    <!-- TRACER BULLET: Bottom-Right with Bright Colors for Visibility Testing -->
     <ImageButton
         android:id="@+id/btnBackHistory"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginBottom="50dp"
-        android:layout_marginEnd="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="45dp"
         android:src="@android:drawable/ic_menu_revert"
-        android:background="#FFFF00"
-        android:elevation="50dp"
-        android:translationZ="50dp"
-        app:tint="#FF0000"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@android:color/transparent"
+        android:elevation="20dp"
+        android:tint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         android:contentDescription="Back" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

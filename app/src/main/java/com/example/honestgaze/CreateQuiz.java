@@ -167,7 +167,7 @@ public class CreateQuiz extends AppCompatActivity {
     private void showGracePeriodDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Grace Period")
-                .setMessage("Enter allowable grace period (e.g., 5 minutes). This is the time allowed before a student is marked late.")
+                .setMessage("Enter allowable grace period (e.g., 30 seconds). This is the time allowed before a student is marked late.")
                 .setPositiveButton("OK", null)
                 .show();
     }
