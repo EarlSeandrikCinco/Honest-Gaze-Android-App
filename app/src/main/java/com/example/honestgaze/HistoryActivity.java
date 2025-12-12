@@ -46,7 +46,17 @@ public class HistoryActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 historyContainer.removeAllViews();
 
+                // Collect all quiz snapshots into a list
+                java.util.List<DataSnapshot> quizList = new java.util.ArrayList<>();
                 for (DataSnapshot quizSnap : snapshot.getChildren()) {
+                    quizList.add(quizSnap);
+                }
+
+                // Reverse list so newest items (highest push key) come first
+                java.util.Collections.reverse(quizList);
+
+                // Now display in reversed order
+                for (DataSnapshot quizSnap : quizList) {
 
                     String quizName = quizSnap.child("quizName").getValue(String.class);
                     String dateTime = quizSnap.child("dateTime").getValue(String.class);
@@ -57,9 +67,7 @@ public class HistoryActivity extends AppCompatActivity {
                     if (warningsObj instanceof Long)
                         totalWarnings = ((Long) warningsObj).intValue();
                     else if (warningsObj instanceof String) {
-                        try {
-                            totalWarnings = Integer.parseInt((String) warningsObj);
-                        } catch (Exception ignored) {}
+                        try { totalWarnings = Integer.parseInt((String) warningsObj); } catch (Exception ignored) {}
                     }
 
                     TextView tv = new TextView(HistoryActivity.this);
@@ -81,4 +89,5 @@ public class HistoryActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
+
 }
