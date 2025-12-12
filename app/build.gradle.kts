@@ -56,6 +56,9 @@ dependencies {
     implementation("com.google.firebase:firebase-storage-ktx:20.2.0")
     implementation("com.google.firebase:firebase-auth-ktx:22.1.0")
 
+    // Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx:24.7.1")
+
     // Splashscreen
     implementation("androidx.core:core-splashscreen:1.0.1")
 

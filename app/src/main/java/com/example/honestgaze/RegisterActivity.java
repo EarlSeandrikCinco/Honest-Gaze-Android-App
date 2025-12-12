@@ -1,14 +1,21 @@
 package com.example.honestgaze;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -16,33 +23,10 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText etName, etEmail, etPassword, etConfirmPassword;
     private Button btnRegister;
 
-    private void markError(EditText field) {
-        field.setBackgroundResource(R.drawable.edittext_error_border);
-    }
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
-    private void clearError(EditText field) {
-        field.setBackgroundResource(R.drawable.edittext_normal);
-    }
-
-    private void showWarningToast(String message) {
-        LayoutInflater inflater = getLayoutInflater();
-        View layout = inflater.inflate(R.layout.toast_error, null);
-
-        TextView tvMessage = layout.findViewById(R.id.tvToastError);
-        tvMessage.setText(message);
-
-        Toast toast = new Toast(getApplicationContext());
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.setView(layout);
-        toast.show();
-    }
-
-    private void clearAllErrors() {
-        clearError(etName);
-        clearError(etEmail);
-        clearError(etPassword);
-        clearError(etConfirmPassword);
-    }
+    private String role;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,71 +40,77 @@ public class RegisterActivity extends AppCompatActivity {
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
 
-        String role = getIntent().getStringExtra("role");
-        txtRole.setText("Registering as "+role+": " );
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
-        btnRegister.setOnClickListener(v -> {
+        // Get role from previous activity
+        role = getIntent().getStringExtra("role");
+        if (role == null) role = "Student"; // default role
+        txtRole.setText("Registering as " + role);
 
-            clearAllErrors();
+        btnRegister.setOnClickListener(v -> registerUser(role));
+    }
 
-            String name = etName.getText().toString().trim();
-            String email = etEmail.getText().toString().trim();
-            String password = etPassword.getText().toString().trim();
-            String confirmPassword = etConfirmPassword.getText().toString().trim();
+    private void registerUser(String role) {
+        String name = etName.getText().toString().trim();
+        String email = etEmail.getText().toString().trim();
+        String password = etPassword.getText().toString().trim();
+        String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-            // Validation: Empty name
-            if (name.isEmpty()) {
-                markError(etName);
-                showWarningToast("Name cannot be empty");
-                return;
-            }
+        // Validation
+        if (name.isEmpty()) { showToast("Name cannot be empty"); return; }
+        if (email.isEmpty()) { showToast("Email cannot be empty"); return; }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) { showToast("Enter valid email"); return; }
+        if (password.isEmpty()) { showToast("Enter password"); return; }
+        if (password.length() < 6) { showToast("Password must be at least 6 chars"); return; }
+        if (!password.equals(confirmPassword)) { showToast("Passwords do not match"); return; }
 
-            // Empty email
-            if (email.isEmpty()) {
-                markError(etEmail);
-                showWarningToast("Email cannot be empty");
-                return;
-            }
+        // Prepend prefix based on role
+        String fullEmail = (role.equalsIgnoreCase("Student") ? "student_" : "prof_") + email;
 
-            // Invalid email
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                markError(etEmail);
-                showWarningToast("Please enter a valid email");
-                return;
-            }
+        // Firebase Auth registration
+        mAuth.createUserWithEmailAndPassword(fullEmail, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser firebaseUser = mAuth.getCurrentUser();
+                        if (firebaseUser != null) {
+                            String uid = firebaseUser.getUid();
 
-            // Empty password
-            if (password.isEmpty()) {
-                markError(etPassword);
-                showWarningToast("Please enter a password");
-                return;
-            }
+                            // Save extra info to Firestore
+                            Map<String, Object> userMap = new HashMap<>();
+                            userMap.put("name", name);
+                            userMap.put("role", role);
+                            userMap.put("email", fullEmail);
 
-            // Password not long enough
-            if (password.length() < 6) {
-                markError(etPassword);
-                showWarningToast("Password must be at least 6 characters");
-                return;
-            }
+                            db.collection("users").document(uid)
+                                    .set(userMap)
+                                    .addOnSuccessListener(aVoid -> showSuccessDialog(fullEmail))
+                                    .addOnFailureListener(e -> showToast("Error saving user info: " + e.getMessage()));
+                        }
+                    } else {
+                        showToast("Registration failed: " + task.getException().getMessage());
+                    }
+                });
+    }
 
-            // Empty confirm password
-            if (confirmPassword.isEmpty()) {
-                markError(etConfirmPassword);
-                showWarningToast("Please confirm your password");
-                return;
-            }
+    private void showSuccessDialog(String fullEmail) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Registration Successful!");
+        builder.setMessage("Your login email is:\n" + fullEmail + "\n\nPlease use this email to log in.");
 
-            // Password mismatch
-            if (!password.equals(confirmPassword)) {
-                markError(etConfirmPassword);
-                showWarningToast("Passwords do not match");
-                return;
-            }
-
-            // Success
-            showWarningToast("Registering...");
-
-            // TODO: Add Firebase or database logic here
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            // Redirect to LoginActivity with pre-filled email
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            intent.putExtra("AUTO_EMAIL", fullEmail);
+            startActivity(intent);
+            finish();
         });
+
+        builder.setCancelable(false); // prevent closing without pressing OK
+        builder.show();
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

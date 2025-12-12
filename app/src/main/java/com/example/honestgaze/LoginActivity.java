@@ -51,6 +51,11 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         tvSignUp = findViewById(R.id.tvSignUp);
 
+        String autoEmail = getIntent().getStringExtra("AUTO_EMAIL");
+        if (autoEmail != null) {
+            etEmail.setText(autoEmail);
+        }
+
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
