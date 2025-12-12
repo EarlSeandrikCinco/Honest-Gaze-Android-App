@@ -43,18 +43,25 @@ public class StudentMenuActivity extends AppCompatActivity {
             ).getReference("rooms").child(roomLink);
 
             roomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists()) {
-                        // Room exists, proceed to OngoingExamActivity
+                        String status = snapshot.child("status").getValue(String.class);
+                        if (status != null && status.equals("ended")) {
+                            Toast.makeText(StudentMenuActivity.this, "This session has ended", Toast.LENGTH_SHORT).show();
+                            return; // Don't enter
+                        }
+
+                        // Room exists and is active
                         Intent intent = new Intent(StudentMenuActivity.this, OngoingExamActivity.class);
                         intent.putExtra("ROOM_ID", roomLink);
                         startActivity(intent);
                     } else {
-                        // Room does not exist
                         Toast.makeText(StudentMenuActivity.this, "Invalid room link", Toast.LENGTH_SHORT).show();
                     }
                 }
+
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
