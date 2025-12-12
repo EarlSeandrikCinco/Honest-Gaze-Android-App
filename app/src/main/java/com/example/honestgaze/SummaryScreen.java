@@ -41,7 +41,7 @@ public class SummaryScreen extends AppCompatActivity {
     private ImageButton btnBackSummary;
     private EditText searchInput;
 
-    private List<Quiz> allQuizzes = new ArrayList<>(); // store all quizzes for filtering
+    private List<Quiz> allQuizzes = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,16 +63,13 @@ public class SummaryScreen extends AppCompatActivity {
         loadQuizzes();
 
         searchInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterQuizzes(s.toString().trim());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) { }
         });
     }
 
@@ -83,15 +80,12 @@ public class SummaryScreen extends AppCompatActivity {
                 allQuizzes.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Quiz quiz = data.getValue(Quiz.class);
-                    if (quiz != null) {
-                        allQuizzes.add(quiz);
-                    }
+                    if (quiz != null) allQuizzes.add(quiz);
                 }
                 displayQuizzes(allQuizzes);
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
@@ -132,7 +126,6 @@ public class SummaryScreen extends AppCompatActivity {
             quizLabel.setTextColor(0xFF000000);
             card.addView(quizLabel);
 
-            // Show summary when clicked
             card.setOnClickListener(v -> showSummaryDialog(quiz.getRoomId()));
 
             quizContainer.addView(card);
@@ -154,78 +147,85 @@ public class SummaryScreen extends AppCompatActivity {
                 String quizKey = snapshot.child("quizKey").getValue(String.class);
                 if (quizKey == null) return;
 
-                // Fetch quiz node to get maxWarnings
                 FirebaseDatabase.getInstance(
                                 "https://honest-gaze-default-rtdb.asia-southeast1.firebasedatabase.app/"
                         ).getReference("quizzes").child(quizKey)
                         .addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
                             public void onDataChange(@NonNull DataSnapshot quizSnapshot) {
-                                int maxWarnings = 3; // fallback default
-                                if (quizSnapshot.child("maxWarnings").exists()) {
-                                    try {
-                                        maxWarnings = Integer.parseInt(quizSnapshot.child("maxWarnings").getValue(String.class));
-                                    } catch (Exception ignored) {}
+
+                                int maxWarnings = 0;
+
+                                // Fetch maxWarnings dynamically
+                                Object maxObj = quizSnapshot.child("maxWarnings").getValue();
+                                if (maxObj instanceof Long) maxWarnings = ((Long) maxObj).intValue();
+                                else if (maxObj instanceof String) {
+                                    try { maxWarnings = Integer.parseInt((String) maxObj); } catch (Exception ignored) {}
                                 }
+
+                                // fallback to numberOfWarnings if maxWarnings missing
+                                if (maxWarnings == 0) {
+                                    Object oldObj = quizSnapshot.child("numberOfWarnings").getValue();
+                                    if (oldObj instanceof Long) maxWarnings = ((Long) oldObj).intValue();
+                                    else if (oldObj instanceof String) {
+                                        try { maxWarnings = Integer.parseInt((String) oldObj); } catch (Exception ignored) {}
+                                    }
+                                }
+
+                                // FORCE a default if nothing exists
+                                if (maxWarnings == 0) maxWarnings = 3;
 
                                 buildSummary(snapshot.child("students"), roomId, maxWarnings);
                             }
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError error) {}
+                            @Override public void onCancelled(@NonNull DatabaseError error) {}
                         });
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     private void buildSummary(DataSnapshot studentsSnapshot, String roomId, int maxWarnings) {
         StringBuilder summary = new StringBuilder();
+        summary.append("Name | Warning Number | Event\n");
+        summary.append("------------------------------------\n");
+
         StringBuilder csvData = new StringBuilder();
-        csvData.append("Name,Warnings Left,Event\n");
+        csvData.append("Name,Warning Number,Event\n");
 
         for (DataSnapshot studentSnap : studentsSnapshot.getChildren()) {
             String name = studentSnap.child("name").getValue(String.class);
             if (name == null) name = "Unknown";
 
-            Object totalObj = studentSnap.child("totalWarnings").getValue();
-            int totalWarnings = 0;
-            if (totalObj instanceof Long) totalWarnings = ((Long) totalObj).intValue();
-            else if (totalObj instanceof Integer) totalWarnings = (Integer) totalObj;
-            else if (totalObj instanceof String) {
-                try { totalWarnings = Integer.parseInt((String) totalObj); } catch (Exception ignored) {}
-            }
-
-            int currentWarningsLeft = maxWarnings - totalWarnings;
-            if (currentWarningsLeft < 0) currentWarningsLeft = 0;
-
             DataSnapshot eventsSnap = studentSnap.child("events");
-            int warningsForDisplay = maxWarnings;
+
+            int warningsLeft = maxWarnings;
+
             if (eventsSnap.exists()) {
                 for (DataSnapshot eventSnap : eventsSnap.getChildren()) {
                     String event = eventSnap.getValue(String.class);
                     if (event == null) event = "Unknown event";
 
-                    summary.append(name).append(" ").append(warningsForDisplay)
-                            .append(" ").append(event).append("\n");
+                    summary.append(name).append(" | ")
+                            .append(warningsLeft).append(" | ")
+                            .append(event).append("\n");
 
-                    csvData.append(name).append(",").append(warningsForDisplay).append(",")
+                    csvData.append(name).append(",")
+                            .append(warningsLeft).append(",")
                             .append(event.replace(",", " ")).append("\n");
 
-                    warningsForDisplay--;
-                    if (warningsForDisplay < 0) warningsForDisplay = 0;
+                    warningsLeft--;
+                    if (warningsLeft < 1) warningsLeft = 1; // never go below 1
                 }
             } else {
-                summary.append(name).append(" ").append(warningsForDisplay).append(" No events\n");
-                csvData.append(name).append(",").append(warningsForDisplay).append(",No events\n");
+                summary.append(name).append(" | ").append(warningsLeft).append(" | No events\n");
+                csvData.append(name).append(",").append(warningsLeft).append(",No events\n");
             }
 
             summary.append("\n");
         }
 
-        // Display summary dialog
         TextView summaryView = new TextView(SummaryScreen.this);
         summaryView.setText(summary.toString());
         summaryView.setPadding(30, 30, 30, 30);
@@ -237,9 +237,11 @@ public class SummaryScreen extends AppCompatActivity {
                 .setTitle("Exam Summary")
                 .setView(scrollView)
                 .setPositiveButton("Close", null)
-                .setNegativeButton("Export CSV", (dialog, which) -> saveCsvToDownloads(roomId, csvData.toString()))
+                .setNegativeButton("Export CSV",
+                        (dialog, which) -> saveCsvToDownloads(roomId, csvData.toString()))
                 .show();
     }
+
 
     private void saveCsvToDownloads(String roomId, String csvContent) {
         String fileName = "exam_summary_" + roomId + ".csv";
