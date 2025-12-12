@@ -53,6 +53,9 @@ public class ProfessorRoomActivity extends AppCompatActivity {
                 studentsContainer.removeAllViews();
 
                 for (DataSnapshot studentSnap : snapshot.getChildren()) {
+                    String status = studentSnap.child("status").getValue(String.class);
+                    if ("disconnected".equals(status)) continue; // skip disconnected students
+
                     String name = studentSnap.child("name").getValue(String.class);
                     Long warnings = studentSnap.child("totalWarnings").getValue(Long.class);
                     String lastEvent = studentSnap.child("lastEvent").getValue(String.class);
@@ -71,6 +74,7 @@ public class ProfessorRoomActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
+
 
     private void setupEndSessionButton() {
         btnEndSession.setOnClickListener(v -> {
